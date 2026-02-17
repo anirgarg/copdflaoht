@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>COPD Pathway — Diagnosis</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="badge" aria-hidden="true"></div>
+      <div>
+        <h1>COPD Pathway</h1>
+        <span>Diagnosis & severity (v1.8 • updated 2025-08-28)</span>
+      </div>
+    </div>
+
+    <div class="search">
+      <input id="searchInput" placeholder="Search (press Enter)…" />
+      <button id="searchClear" type="button" title="Clear highlights">Clear</button>
+    </div>
+
+    <nav aria-label="Primary">
+      <a href="index.html">Diagnosis</a>
+      <a href="treatment.html">Treatment</a>
+      <a href="action-plan/copd-v2.html">Action Plan</a>
+      <a href="advanced.html">Advanced</a>
+      <a href="resources.html">Resources</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="page-title">
+    <div>
+      <h2>Diagnosis & severity</h2>
+      <p>Landing page for quick confirmation of COPD, symptom assessment, and severity-based next steps.</p>
+    </div>
+    <div class="pillrow">
+      <span class="pill">KCHC pathway</span>
+      <span class="pill">Fast clinical navigation</span>
+      <span class="pill">Print-friendly</span>
+    </div>
+  </div>
+
+  <div class="grid two">
+    <section class="card" id="quick-flow">
+      <h3>Quick diagnostic flow</h3>
+
+      <div class="flow">
+        <div class="node" id="suspect">
+          <strong>1) When to suspect COPD</strong>
+          <ul>
+            <li>Chronic and progressive dyspnea</li>
+            <li>Recurrent wheeze</li>
+            <li>Chronic cough</li>
+            <li>Recurrent respiratory infections</li>
+            <li>Risk factors including exposure to tobacco smoke</li>
+          </ul>
+        </div>
+
+        <div class="node" id="spirometry">
+          <strong>2) Confirm with spirometry</strong>
+          <p>Diagnosis requires spirometry demonstrating <b>post-bronchodilator FEV1/FVC ratio &lt; 0.7 (or LLN)</b>.</p>
+          <div class="actions">
+            <a class="btn primary" href="resources.html#spirometry">Spirometry sites</a>
+            <a class="btn link" href="#reversibility">Next: reversibility check</a>
+          </div>
+        </div>
+
+        <div class="node" id="reversibility">
+          <strong>3) Is airflow obstruction reversible with bronchodilators?</strong>
+          <p>If <b>FEV1 improves by ≥200 mL AND ≥12%</b>, diagnosis is more likely to be asthma.</p>
+          <div class="actions">
+            <a class="btn warn" href="#asthma-note">Yes → asthma more likely</a>
+            <a class="btn ok" href="#confirmed">No → COPD confirmed</a>
+          </div>
+        </div>
+
+        <div class="node" id="asthma-note">
+          <strong>If reversible</strong>
+          <p>Diagnosis is more likely to be asthma. Consider asthma management and reassess if mixed disease suspected.</p>
+        </div>
+
+        <div class="node" id="confirmed">
+          <strong>COPD is confirmed → determine severity</strong>
+          <div class="actions">
+            <a class="btn primary" href="#severity">Severity</a>
+            <a class="btn" href="#symptoms">Symptoms (CAT / MRC)</a>
+            <a class="btn" href="treatment.html#preventative">Preventative measures</a>
+            <a class="btn primary" href="action-plan/copd-v2.html" target="_blank" rel="noopener">Open Action Plan</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card" id="at-a-glance">
+      <h3>At-a-glance</h3>
+      <div class="kv">
+        <div class="row"><b>Preventative measures</b><span><a href="treatment.html#preventative">Open</a></span></div>
+        <div class="row"><b>COPD action plan</b><span><a href="action-plan/copd-v2.html" target="_blank" rel="noopener">Open</a></span></div>
+        <div class="row"><b>Stable COPD management</b><span><a href="treatment.html#stable-management">Open</a></span></div>
+        <div class="row"><b>Advanced therapies</b><span><a href="advanced.html">Open</a></span></div>
+        <div class="row"><b>Resources</b><span><a href="resources.html">Open</a></span></div>
+      </div>
+
+      <div class="callout warn" style="margin-top:14px">
+        <b>Tip:</b> Use search (top bar) and press <kbd>Enter</kbd> to highlight matches.
+      </div>
+    </aside>
+  </div>
+
+  <hr class="sep" />
+
+  <section class="card" id="severity">
+    <h3>Severity (spirometry) & referral guidance</h3>
+    <div class="grid three" style="margin-top:10px">
+      <div class="card">
+        <h4>Mild</h4>
+        <p><b>FEV1 ≥80% predicted</b></p>
+        <p>Consider referring to a respirologist if not responding to treatment as outlined in the pathway.</p>
+      </div>
+      <div class="card">
+        <h4>Moderate</h4>
+        <p><b>FEV1 50–80% predicted</b></p>
+        <p>Consider referring to a respirologist if symptomatic or <b>FEV1 &lt;70%</b>. Document GOC discussion.</p>
+      </div>
+      <div class="card">
+        <h4>Severe / Very severe</h4>
+        <p><b>Severe: FEV1 30–49% predicted</b><br /><b>Very severe: FEV1 &lt;30%</b></p>
+        <p>Patient should be seen by a respirologist. Document GOC discussion.</p>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:12px" id="symptoms">
+      <b>Assessing symptoms:</b> consider COPD Assessment Test (CAT) and MRC grade.
+    </div>
+
+    <div class="callout danger" style="margin-top:10px">
+      <b>Referral shortcut:</b> Pulmonary Function Laboratory at KHSC – HDH site (see <a href="resources.html#spirometry">Resources</a>).
+    </div>
+  </section>
+
+  <div class="footer">
+    <div>Pathway: v1.8 (Created 2024-03-18 • Updated 2025-08-28)</div>
+    <div><a href="resources.html#about">About / governance</a></div>
+  </div>
+</main>
+
+<button id="backToTop" class="backtotop" type="button" aria-label="Back to top">↑ Top</button>
+<script src="assets/app.js"></script>
+</body>
+</html>

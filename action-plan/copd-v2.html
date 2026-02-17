@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COPD Action Plan — KCHC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            font-size: 14px;
+            background-color: #f0f2f5;
+            background-image: repeating-linear-gradient(
+                45deg,
+                rgba(0,0,0,0.03) 0px,
+                rgba(0,0,0,0.03) 3px,
+                transparent 3px,
+                transparent 6px
+            );
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 25px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dcdcdc;
+        }
+        .header h1 {
+            font-size: 26px;
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .clinic-name {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .patient-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        .patient-info div {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .patient-info span {
+            font-weight: 600;
+            color: #495057;
+        }
+        .med-section {
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+        .med-section h3 {
+            background: #eef2f7;
+            padding: 8px 12px;
+            margin: 12px 0 8px;
+            font-size: 16px;
+            border-radius: 6px;
+            color: #343a40;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .rescue-section h3 {
+            background: #ffe0e6;
+            color: #d81b60;
+        }
+        .med-row {
+            display: flex;
+            margin-bottom: 8px;
+            align-items: center;
+            gap: 10px;
+        }
+        .med-select {
+            width: 190px;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .med-select:focus,
+        input[type="text"]:focus,
+        input[type="date"]:focus {
+            border-color: #80bdff;
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .med-instructions {
+            flex: 1;
+            min-width: 0;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .remove-btn {
+            background: #dc3545;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            padding: 7px 10px;
+            margin-left: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .remove-btn:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+        }
+        .remove-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        .zone {
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border-left: 8px solid;
+            page-break-inside: avoid;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .zone-content {
+            flex: 1;
+            padding-right: 20px;
+        }
+        .zone-emoji {
+            width: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            flex-shrink: 0;
+        }
+        .green {
+            background-color: #e8fce8;
+            border-color: #388e3c;
+        }
+        .yellow {
+            background-color: #fffde7;
+            border-color: #fbc02d;
+        }
+        .red {
+            background-color: #ffebee;
+            border-color: #d32f2f;
+        }
+        .zone h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #343a40;
+        }
+        .zone ul {
+            padding-left: 28px;
+            margin: 8px 0;
+            list-style: none;
+        }
+        .zone li {
+            margin-bottom: 4px;
+            position: relative;
+            padding-left: 28px;
+            font-size: 15px;
+            line-height: 1.5em;
+        }
+        .zone li input[type="checkbox"] {
+            position: absolute;
+            left: 0;
+            top: 3px;
+            transform: scale(1.2);
+        }
+        .zone strong {
+            display: block;
+            margin-top: 15px;
+            font-size: 15px;
+            color: #495057;
+            font-weight: 600;
+        }
+        .language-selector {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 100;
+        }
+        .print-options {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        .print-btn {
+            background: #6c757d;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+        }
+        .print-btn:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+        }
+        .print-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        select, input[type="text"], input[type="date"] {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+        }
+
+        /* Styles for bottom medication images */
+        .selected-med-images {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .selected-med-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-width: 200px;
+        }
+        .selected-med-item img {
+            width: 250px;
+            height: 125px;
+            object-fit: contain;
+            border: 1px solid #a0a0a0;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+        .selected-med-item span {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        @media print {
+            /* Hide print buttons and language selector */
+            .language-selector, .print-options {
+                display: none !important;
+            }
+            .remove-btn {
+                display: none !important;
+            }
+
+            body {
+                padding: 0;
+                font-size: 12px; /* Increased base font for print */
+                line-height: 1.4; /* More generous line height for better readability */
+                background: none !important;
+            }
+            .container {
+                padding: 15px; /* Increased container padding for print */
+                box-shadow: none;
+                border-radius: 0;
+            }
+            .header {
+                margin-bottom: 10px; /* Increased margin */
+                padding-bottom: 8px; /* Increased padding */
+            }
+            .header h1 {
+                font-size: 22px; /* Increased title font size for print */
+            }
+            .clinic-name {
+                font-size: 12px; /* Increased clinic name font size for print */
+            }
+            .patient-info {
+                margin-bottom: 12px; /* Increased margin */
+                padding: 6px 0; /* Increased padding */
+            }
+            .patient-info div {
+                gap: 5px; /* Increased gap */
+            }
+            .patient-info span, select, input[type="text"], input[type="date"] {
+                font-size: 12px; /* Increased font for inputs/selects in print */
+                padding: 2px; /* Increased padding for inputs/selects in print */
+            }
+            .med-section {
+                margin-bottom: 12px; /* Increased section margin for print */
+            }
+            .med-section h3 {
+                padding: 6px 10px; /* Increased header padding for print */
+                margin: 10px 0 6px; /* Increased margin */
+                font-size: 14px; /* Increased header font for print */
+                gap: 6px; /* Increased gap for icon */
+            }
+            .med-row {
+                margin-bottom: 5px; /* Increased margin */
+                gap: 8px; /* Increased gap in medication rows for print */
+            }
+            .med-select {
+                width: 170px; /* Adjusted select width for print */
+                font-size: 12px;
+                padding: 3px;
+            }
+            .med-instructions {
+                font-size: 12px;
+                padding: 3px;
+            }
+            .zone {
+                padding: 12px; /* Increased zone padding for print */
+                margin-bottom: 12px; /* Increased margin */
+                border-left: 5px solid !important; /* Thicker border for print */
+                box-shadow: none;
+            }
+            .zone-content {
+                padding-right: 10px; /* Increased padding */
+            }
+            .zone-emoji {
+                width: 50px; /* Increased emoji container for print */
+                font-size: 35px; /* Increased emoji size for print */
+            }
+            .zone h2 {
+                font-size: 16px; /* Increased zone title for print */
+                margin-bottom: 8px; /* Increased margin */
+            }
+            .zone ul {
+                padding-left: 25px; /* Increased padding */
+                margin: 5px 0; /* Increased margin */
+            }
+            .zone li {
+                margin-bottom: 0.3em; /* More spacing for print */
+                padding-left: 25px;
+                font-size: 12px;
+                line-height: 1.4; /* More generous line height for print */
+            }
+            .zone li input[type="checkbox"] {
+                top: 0.2em; /* Adjusted top for print */
+                transform: scale(1); /* Default size checkboxes for print */
+            }
+            .zone strong {
+                margin-top: 8px; /* Increased margin */
+                font-size: 12px;
+            }
+            .selected-med-images {
+                margin-top: 20px; /* Increased margin */
+                padding-top: 15px; /* Increased padding */
+                gap: 15px; /* Increased gap for print */
+            }
+            .selected-med-item {
+                min-width: 180px; /* Adjusted min-width for print */
+            }
+            .selected-med-item img {
+                width: 250px !important; /* Maintained image width */
+                height: 125px !important; /* Maintained image height */
+                box-shadow: none;
+                border-radius: 5px;
+            }
+            .selected-med-item span {
+                font-size: 12px;
+            }
+
+            /* Ensure backgrounds and borders print correctly */
+            .green, .yellow, .red,
+            .med-section h3, .rescue-section h3 {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    
+        /* --- Pathway integration bar --- */
+        .pathway-bar{
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            margin: -20px -20px 14px -20px; /* counter body padding */
+            background: rgba(15, 22, 34, 0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.15);
+            color: #ffffff;
+        }
+        .pathway-bar a{
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .pathway-bar a:hover{ text-decoration: underline; }
+        .pathway-actions{
+            display:flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .pathway-btn{
+            appearance: none;
+            border: 1px solid rgba(255,255,255,0.22);
+            background: rgba(255,255,255,0.10);
+            color: #ffffff;
+            padding: 8px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .pathway-btn:hover{ background: rgba(255,255,255,0.16); }
+        @media print{
+            .pathway-bar{ display:none !important; }
+            body{ padding: 0 !important; background: #ffffff !important; }
+            .container{ box-shadow:none !important; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="pathway-bar" role="navigation" aria-label="COPD Pathway">
+        <div>
+            <a href="../index.html">← Back to COPD Pathway</a>
+        </div>
+        <div class="pathway-actions">
+            <button class="pathway-btn" type="button" onclick="window.print()">Print</button>
+            <a class="pathway-btn" href="../resources.html" style="display:inline-block">Resources</a>
+        </div>
+    </div>
+
+    <div class="print-options">
+        <button class="print-btn" id="print-button">Print</button>
+        <button class="print-btn" id="save-pdf-button">Print / Save as PDF</button>
+    </div>
+
+    <div class="language-selector">
+        <select id="language-select">
+            <option value="en">English</option>
+            <option value="fr">Français</option>
+            <option value="es">Español</option>
+            <option value="zh">中文 (Mandarin)</option>
+            <option value="yue">粵語 (Cantonese)</option>
+            <option value="ar">العربية</option>
+            <option value="hi">हिन्दी</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1 id="title">COPD ACTION PLAN</h1>
+            <div id="clinic-name">Kingston Community Health Centre</div>
+        </div>
+
+        <div class="patient-info">
+            <div><span id="name-label">Name:</span> <input type="text" id="patient-name" style="width:150px;"></div>
+            <div><span id="date-label">Date:</span> <input type="date" id="plan-date" style="width:120px;"></div>
+        </div>
+
+        <div class="med-section">
+            <h3 id="preventer-label">Preventer Medication</h3>
+            <div class="med-row">
+                <select class="med-select" id="preventer-select">
+                    <option value="">None</option>
+                    <option value="advair">Advair</option>
+                    <option value="anoro">Anoro</option>
+                    <option value="breo">Breo</option>
+                    <option value="breztri">Breztri</option>
+                    <option value="duaklir">Duaklir</option>
+                    <option value="incruse">Incruse</option>
+                    <option value="inspiolto">Inspiolto</option>
+                    <option value="lupin">Lupin</option>
+                    <option value="seebri">Seebri</option>
+                    <option value="serevent">Serevent</option>
+                    <option value="spiriva_handihaler">Spiriva (Handihaler)</option>
+                    <option value="spiriva_respimat">Spiriva (Respimat)</option>
+                    <option value="symbicort">Symbicort</option>
+                    <option value="trelegy">Trelegy</option>
+                    <option value="tudorza">Tudorza</option>
+                    <option value="ultibro">Ultibro</option>
+                    <option value="wixela">Wixela</option>
+                </select>
+                <input type="text" class="med-instructions" id="preventer-instructions" placeholder="Instructions">
+            </div>
+        </div>
+
+        <div class="med-section">
+            <h3 id="reliever-label">Reliever Medication</h3>
+            <div class="med-row">
+                <select class="med-select" id="reliever-select">
+                    <option value="">None</option>
+                    <option value="atrovent">Atrovent</option>
+                    <option value="bricanyl">Bricanyl</option>
+                    <option value="combivent">Combivent</option>
+                    <option value="ventolin_diskus">Ventolin (Diskus)</option>
+                    <option value="ventolin_mdi">Ventolin (MDI)</option>
+                </select>
+                <input type="text" class="med-instructions" id="reliever-instructions" placeholder="Instructions">
+            </div>
+        </div>
+
+        <div class="med-section">
+            <h3 id="regular-abx-label"><i class="fas fa-pills"></i> Regular Antibiotics</h3>
+            <div class="med-row">
+                <select class="med-select" id="regular-abx-select">
+                    <option value="">None</option>
+                    <option value="azithromycin">Azithromycin (Zithromax)</option>
+                    <option value="doxycycline">Doxycycline</option>
+                    <option value="erythromycin">Erythromycin</option>
+                </select>
+                <input type="text" class="med-instructions" id="regular-abx-instructions" placeholder="Instructions">
+            </div>
+        </div>
+
+        <div class="med-section">
+            <h3 id="oxygen-label"><i class="fas fa-lungs"></i> Oxygen Therapy</h3>
+            <div class="med-row">
+                <select class="med-select" id="oxygen-select">
+                    <option value="">None</option>
+                    <option value="oxygen">Oxygen</option>
+                </select>
+                <input type="text" class="med-instructions" id="oxygen-instructions" placeholder="Instructions (e.g., 2L/min)">
+            </div>
+        </div>
+
+        <div class="med-section rescue-section">
+            <h3 id="rescue-steroid-label"><i class="fas fa-prescription-bottle-alt"></i> Rescue Steroid</h3>
+            <div class="med-row">
+                <select class="med-select" id="rescue-steroid-select">
+                    <option value="">None</option>
+                    <option value="prednisone">Prednisone</option>
+                    <option value="prednisolone">Prednisolone</option>
+                    <option value="medrol">Medrol (Methylprednisolone)</option>
+                </select>
+                <input type="text" class="med-instructions" id="rescue-steroid-instructions" placeholder="Instructions (e.g., 30mg daily x 7 days)">
+            </div>
+        </div>
+
+        <div class="med-section rescue-section">
+            <h3 id="rescue-abx-label"><i class="fas fa-syringe"></i> Rescue Antibiotic</h3>
+            <div class="med-row">
+                <select class="med-select" id="rescue-abx-select">
+                    <option value="">None</option>
+                    <option value="amoxicillin">Amoxicillin</option>
+                    <option value="aumentin">Augmentin (Amoxicillin/Clavulanate)</option>
+                    <option value="aumentin_df">Augmentin DF (Double Strength)</option>
+                    <option value="azithromycin">Azithromycin (Zithromax)</option>
+                    <option value="clarithromycin">Clarithromycin (Biaxin)</option>
+                    <option value="moxifloxacin">Moxifloxacin (Avelox)</option>
+                    <option value="levofloxacin">Levofloxacin (Levaquin)</option>
+                    <option value="ciprofloxacin">Ciprofloxacin (Cipro)</option>
+                    <option value="doxycycline">Doxycycline</option>
+                </select>
+                <input type="text" class="med-instructions" id="rescue-abx-instructions" placeholder="Instructions (e.g., 500mg TID x 7 days)">
+            </div>
+        </div>
+
+        <div class="zone green">
+            <div class="zone-content">
+                <h2 id="green-title">✅ GREEN ZONE: Doing Well</h2>
+                <ul id="green-symptoms">
+                    <li><input type="checkbox"> <span id="greenSymptom1">Breathing normal</span></li>
+                    <li><input type="checkbox"> <span id="greenSympt2">Usual cough/sputum</span></li>
+                </ul>
+                <strong id="green-actions-label">Actions:</strong>
+                <ul id="green-actions">
+                    <li><input type="checkbox"> <span id="green-action1">Take preventer medication</span></li>
+                    <li><input type="checkbox"> <span id="green-action2">Stay active</span></li>
+                    <li><input type="checkbox"> <span id="green-action3">Avoid triggers</span></li>
+                </ul>
+            </div>
+            <div class="zone-emoji">😊</div>
+        </div>
+
+        <div class="zone yellow">
+            <div class="zone-content">
+                <h2 id="yellow-title">⚠ YELLOW ZONE: Symptoms Worsening</h2>
+                <ul id="yellow-symptoms">
+                    <li><input type="checkbox"> <span id="yellowSympt1">Increased breathlessness</span></li>
+                    <li><input type="checkbox"> <span id="yellowSympt2">More cough/sputum</span></li>
+                    <li><input type="checkbox"> <span id="yellowSympt3">Sputum color change</span></li>
+                </ul>
+                <strong id="yellow-actions-label">Actions:</strong>
+                <ul id="yellow-actions">
+                    <li><input type="checkbox"> <span id="yellow-action1">Start rescue medications</span></li>
+                    <li><input type="checkbox"> <span id="yellow-action2">Use reliever more frequently</span></li>
+                    <li><input type="checkbox"> <span id="yellow-action3">Contact clinic if no improvement</span></li>
+                </ul>
+            </div>
+            <div class="zone-emoji">😐</div>
+        </div>
+
+        <div class="zone red">
+            <div class="zone-content">
+                <h2 id="red-title">🚨 RED ZONE: Severe Symptoms</h2>
+                <ul id="red-symptoms">
+                    <li><input type="checkbox"> <span id="redSympt1">Severe breathlessness</span></li>
+                    <li><input type="checkbox"> <span id="redSympt2">Can't speak in sentences</span></li>
+                    <li><input type="checkbox"> <span id="redSympt3">Lips/nails blue</span></li>
+                </ul>
+                <strong id="red-actions-label">Actions:</strong>
+                <ul id="red-actions">
+                    <li><input type="checkbox"> <span id="red-action1">CALL 911 IMMEDIATELY</span></li>
+                    <li><input type="checkbox"> <span id="red-action2">Use reliever medication</span></li>
+                    <li><input type="checkbox"> <span id="red-action3">Take rescue medications</span></li>
+                </ul>
+            </div>
+            <div class="zone-emoji">😞</div>
+        </div>
+
+        <div class="selected-med-images">
+            <div class="selected-med-item" id="bottom-preventer-item" style="display:none;">
+                <span id="bottom-preventer-label">Preventer:</span> <img id="bottom-preventer-img" src="" alt="Preventer Medication">
+            </div>
+            <div class="selected-med-item" id="bottom-reliever-item" style="display:none;">
+                <span id="bottom-reliever-label">Reliever:</span> <img id="bottom-reliever-img" src="" alt="Reliever Medication">
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const medImages = {
+            'advair': 'medications/advair.jpg',
+            'anoro': 'medications/anoro.jpg',
+            'breo': 'medications/breo.jpg',
+            'breztri': 'medications/breztri.jpg',
+            'duaklir': 'medications/duaklir.jpg',
+            'incruse': 'medications/incruse.jpg',
+            'inspiolto': 'medications/inspiolto.jpg',
+            'lupin': 'medications/lupin.jpg',
+            'seebri': 'medications/seebri.jpg',
+            'serevent': 'medications/serevent.jpg',
+            'spiriva_handihaler': 'medications/spiriva_handihaler.jpg',
+            'spiriva_respimat': 'medications/spiriva_respimat.jpg',
+            'symbicort': 'medications/symbicort.jpg',
+            'trelegy': 'medications/trelegy.jpg',
+            'tudorza': 'medications/tudorza.jpg',
+            'ultibro': 'medications/ultibro.jpg',
+            'wixela': 'medications/wixela.jpg',
+            'atrovent': 'medications/atrovent.jpg',
+            'bricanyl': 'medications/bricanyl.jpg',
+            'combivent': 'medications/combivent.jpg',
+            'ventolin_diskus': 'medications/ventolin_diskus.jpg',
+            'ventolin_mdi': 'medications/ventolin_mdi.jpg',
+        };
+
+        const bottomPreventerItem = document.getElementById('bottom-preventer-item');
+        const bottomPreventerImg = document.getElementById('bottom-preventer-img');
+        const bottomRelieverItem = document.getElementById('bottom-reliever-item');
+        const bottomRelieverImg = document.getElementById('bottom-reliever-img');
+
+        function handleMedicationSelection(selectElement, bottomImgElement, bottomItemElement) {
+            const selectedValue = selectElement.value;
+            const imageUrl = medImages[selectedValue] || '';
+
+            if (bottomImgElement && bottomItemElement) {
+                if (imageUrl) {
+                    bottomImgElement.src = imageUrl;
+                    bottomItemElement.style.display = 'flex';
+                } else {
+                    bottomImgElement.src = '';
+                    bottomItemElement.style.display = 'none';
+                }
+            }
+        }
+
+        const preventerSelect = document.getElementById('preventer-select');
+        const relieverSelect = document.getElementById('reliever-select');
+
+        preventerSelect.addEventListener('change', function() {
+            handleMedicationSelection(
+                preventerSelect,
+                bottomPreventerImg,
+                bottomPreventerItem
+            );
+        });
+
+        relieverSelect.addEventListener('change', function() {
+            handleMedicationSelection(
+                relieverSelect,
+                bottomRelieverImg,
+                bottomRelieverItem
+            );
+        });
+
+        const translations = {
+            en: {
+                title: "COPD ACTION PLAN",
+                clinicName: "Kingston Community Health Centre",
+                nameLabel: "Name:",
+                dateLabel: "Date:",
+                preventerLabel: "Preventer Medication",
+                relieverLabel: "Reliever Medication",
+                regularAbxLabel: "Regular Antibiotics",
+                oxygenLabel: "Oxygen Therapy",
+                rescueSteroidLabel: "Rescue Steroid",
+                rescueAbxLabel: "Rescue Antibiotic",
+                greenTitle: "✅ GREEN ZONE: Doing Well",
+                greenSymptom1: "Breathing normal",
+                greenSympt2: "Usual cough/sputum",
+                greenActionsLabel: "Actions:",
+                greenAction1: "Take preventer medication",
+                greenAction2: "Stay active",
+                greenAction3: "Avoid triggers",
+                yellowTitle: "⚠ YELLOW ZONE: Symptoms Worsening",
+                yellowSympt1: "Increased breathlessness",
+                yellowSympt2: "More cough/sputum",
+                yellowSympt3: "Sputum color change",
+                yellowActionsLabel: "Actions:",
+                yellowAction1: "Start rescue medications",
+                yellowAction2: "Use reliever more frequently",
+                yellowAction3: "Contact clinic if no improvement",
+                redTitle: "🚨 RED ZONE: Severe Symptoms",
+                redSympt1: "Severe breathlessness",
+                redSympt2: "Can't speak in sentences",
+                redSympt3: "Lips/nails blue",
+                redActionsLabel: "Actions:",
+                redAction1: "CALL 911 IMMEDIATELY",
+                redAction2: "Use reliever medication",
+                redAction3: "Take rescue medications",
+                bottomPreventerLabel: "Preventer:",
+                bottomRelieverLabel: "Reliever:",
+                printButton: "Print",
+                savePdfButton: "Print / Save as PDF",
+                preventerInstructionsPlaceholder: "Instructions",
+                relieverInstructionsPlaceholder: "Instructions",
+                regularAbxInstructionsPlaceholder: "Instructions",
+                oxygenInstructionsPlaceholder: "Instructions (e.g., 2L/min)",
+                rescueSteroidInstructionsPlaceholder: "Instructions (e.g., 30mg daily x 7 days)",
+                rescueAbxInstructionsPlaceholder: "Instructions (e.g., 500mg TID x 7 days)"
+            },
+            fr: {
+                title: "PLAN D'ACTION BPCO",
+                clinicName: "Centre de Santé Communautaire de Kingston",
+                nameLabel: "Nom:",
+                dateLabel: "Date:",
+                preventerLabel: "Médicament préventif",
+                relieverLabel: "Médicament de soulagement",
+                regularAbxLabel: "Antibiotiques réguliers",
+                oxygenLabel: "Oxygénothérapie",
+                rescueSteroidLabel: "Stéroïde de secours",
+                rescueAbxLabel: "Antibiotique de secours",
+                greenTitle: "✅ ZONE VERTE: Bien",
+                greenSymptom1: "Respiration normale",
+                greenSympt2: "Toux/expectorations habituelles",
+                greenActionsLabel: "Actions:",
+                greenAction1: "Prendre le médicament préventif",
+                greenAction2: "Rester actif",
+                greenAction3: "Éviter les déclencheurs",
+                yellowTitle: "⚠ ZONE JAUNE: Symptômes qui s'aggravent",
+                yellowSympt1: "Essoufflement accru",
+                yellowSympt2: "Plus de toux/expectorations",
+                yellowSympt3: "Changement de couleur des expectorations",
+                yellowActionsLabel: "Actions:",
+                yellowAction1: "Commencer les médicaments de secours",
+                yellowAction2: "Utiliser le soulagement plus fréquemment",
+                yellowAction3: "Contacter la clinique si pas d'amélioration",
+                redTitle: "🚨 ZONE ROUGE: Symptômes graves",
+                redSympt1: "Essoufflement sévère",
+                redSympt2: "Ne peut pas parler en phrases",
+                redSympt3: "Lèvres/ongles bleus",
+                redActionsLabel: "Actions:",
+                redAction1: "APPELER LE 911 IMMÉDIATEMENT",
+                redAction2: "Utiliser le médicament de soulagement",
+                redAction3: "Prendre les médicaments de secours",
+                bottomPreventerLabel: "Préventif:",
+                bottomRelieverLabel: "Soulagement:",
+                printButton: "Imprimer",
+                savePdfButton: "Imprimer / Enregistrer en PDF",
+                preventerInstructionsPlaceholder: "Instructions",
+                relieverInstructionsPlaceholder: "Instructions",
+                regularAbxInstructionsPlaceholder: "Instructions",
+                oxygenInstructionsPlaceholder: "Instructions (ex: 2L/min)",
+                rescueSteroidInstructionsPlaceholder: "Instructions (ex: 30mg par jour x 7 jours)",
+                rescueAbxInstructionsPlaceholder: "Instructions (ex: 500mg TID x 7 jours)"
+            },
+            es: {
+                title: "PLAN DE ACCIÓN EPOC",
+                clinicName: "Centro de Salud Comunitario de Kingston",
+                nameLabel: "Nombre:",
+                dateLabel: "Fecha:",
+                preventerLabel: "Medicamento preventivo",
+                relieverLabel: "Medicamento de rescate",
+                regularAbxLabel: "Antibióticos regulares",
+                oxygenLabel: "Oxigenoterapia",
+                rescueSteroidLabel: "Esteroides de rescate",
+                rescueAbxLabel: "Antibiótico de rescate",
+                greenTitle: "✅ ZONA VERDE: Bien",
+                greenSymptom1: "Respiración normal",
+                greenSympt2: "Tos/esputo habitual",
+                greenActionsLabel: "Acciones:",
+                greenAction1: "Tomar medicamento preventivo",
+                greenAction2: "Mantenerse activo",
+                greenAction3: "Evitar desencadenantes",
+                yellowTitle: "⚠ ZONA AMARILLA: Síntomas empeorando",
+                yellowSympt1: "Aumento de la dificultad para respirar",
+                yellowSympt2: "Más tos/esputum",
+                yellowSympt3: "Cambio de color del esputo",
+                yellowActionsLabel: "Acciones:",
+                yellowAction1: "Iniciar medicamentos de rescate",
+                yellowAction2: "Usar el medicamento de rescate con más frecuencia",
+                yellowAction3: "Contactar a la clínica si no hay mejora",
+                redTitle: "🚨 ZONA ROJA: Síntomas graves",
+                redSympt1: "Dificultad respiratoria severa",
+                redSympt2: "No puede hablar en oraciones",
+                redSympt3: "Labios/uñas azules",
+                redActionsLabel: "Actions:",
+                redAction1: "LLAMAR AL 911 INMEDIATAMENTE",
+                redAction2: "Usar medicamento de rescate",
+                redAction3: "Tomar medicamentos de rescate",
+                bottomPreventerLabel: "Preventivo:",
+                bottomRelieverLabel: "Rescate:",
+                printButton: "Imprimir",
+                savePdfButton: "Imprimir / Guardar como PDF",
+                preventerInstructionsPlaceholder: "Instrucciones",
+                relieverInstructionsPlaceholder: "Instrucciones",
+                regularAbxInstructionsPlaceholder: "Instrucciones",
+                oxygenInstructionsPlaceholder: "Instrucciones (ej: 2L/min)",
+                rescueSteroidInstructionsPlaceholder: "Instrucciones (ej: 30mg diarios x 7 días)",
+                rescueAbxInstructionsPlaceholder: "Instrucciones (ej: 500mg TID x 7 días)"
+            },
+            zh: { // Mandarin Chinese
+                title: "慢性阻塞性肺疾病行动计划",
+                clinicName: "金斯顿社区健康中心",
+                nameLabel: "姓名:",
+                dateLabel: "日期:",
+                preventerLabel: "预防药物",
+                relieverLabel: "缓解药物",
+                regularAbxLabel: "常规抗生素",
+                oxygenLabel: "氧气疗法",
+                rescueSteroidLabel: "紧急类固醇",
+                rescueAbxLabel: "紧急抗生素",
+                greenTitle: "✅ 绿色区域：情况良好",
+                greenSymptom1: "呼吸正常",
+                greenSympt2: "日常咳嗽/痰",
+                greenActionsLabel: "行动:",
+                greenAction1: "服用预防药物",
+                greenAction2: "保持活跃",
+                greenAction3: "避免诱因",
+                yellowTitle: "⚠ 黄色区域：症状恶化",
+                yellowSympt1: "呼吸困难加重",
+                yellowSympt2: "咳嗽/痰增多",
+                yellowSympt3: "痰颜色改变",
+                yellowActionsLabel: "行动:",
+                yellowAction1: "开始紧急药物",
+                yellowAction2: "更频繁地使用缓解药物",
+                yellowAction3: "如无改善请联系诊所",
+                redTitle: "🚨 红色区域：严重症状",
+                redSympt1: "严重呼吸困难",
+                redSympt2: "无法说完整句子",
+                redSympt3: "嘴唇/指甲发蓝",
+                redActionsLabel: "行动:",
+                redAction1: "立即拨打911",
+                redAction2: "使用缓解药物",
+                redAction3: "服用紧急药物",
+                bottomPreventerLabel: "预防药物:",
+                bottomRelieverLabel: "缓解药物:",
+                printButton: "打印",
+                savePdfButton: "打印 / 保存为PDF",
+                preventerInstructionsPlaceholder: "說明",
+                relieverInstructionsPlaceholder: "說明",
+                regularAbxInstructionsPlaceholder: "說明",
+                oxygenInstructionsPlaceholder: "說明 (例如: 2升/分鐘)",
+                rescueSteroidInstructionsPlaceholder: "說明 (例如: 每日30毫克 x 7天)",
+                rescueAbxInstructionsPlaceholder: "說明 (例如: 每日500毫克，每日三次 x 7天)"
+            },
+            yue: { // Cantonese Chinese
+                title: "慢性阻塞性肺病行動計劃",
+                clinicName: "京士頓社區健康中心",
+                nameLabel: "姓名:",
+                dateLabel: "日期:",
+                preventerLabel: "預防藥物",
+                relieverLabel: "舒緩藥物",
+                regularAbxLabel: "常規抗生素",
+                oxygenLabel: "氧氣治療",
+                rescueSteroidLabel: "緊急類固醇",
+                rescueAbxLabel: "緊急抗生素",
+                greenTitle: "✅ 綠色區域：情況良好",
+                greenSymptom1: "呼吸正常",
+                greenSympt2: "日常咳嗽/痰",
+                greenActionsLabel: "行動:",
+                greenAction1: "服用預防藥物",
+                greenAction2: "保持活躍",
+                greenAction3: "避免誘因",
+                yellowTitle: "⚠ 黃色區域：症狀惡化",
+                yellowSympt1: "氣促加劇",
+                yellowSympt2: "咳嗽/痰增多",
+                yellowSympt3: "痰顏色改變",
+                yellowActionsLabel: "行動:",
+                yellowAction1: "開始緊急藥物",
+                yellowAction2: "更頻繁地使用舒緩藥物",
+                yellowAction3: "如無改善請聯絡診所",
+                redTitle: "🚨 紅色區域：嚴重症狀",
+                redSympt1: "嚴重氣促",
+                redSympt2: "無法說完整句子",
+                redSympt3: "嘴唇/指甲發藍",
+                redActionsLabel: "行動:",
+                redAction1: "立即致電911",
+                redAction2: "使用舒緩藥物",
+                redAction3: "服用緊急藥物",
+                bottomPreventerLabel: "預防藥物:",
+                bottomRelieverLabel: "舒緩藥物:",
+                printButton: "打印",
+                savePdfButton: "打印 / 儲存為PDF",
+                preventerInstructionsPlaceholder: "說明",
+                relieverInstructionsPlaceholder: "說明",
+                regularAbxInstructionsPlaceholder: "說明",
+                oxygenInstructionsPlaceholder: "說明 (例如: 2升/分鐘)",
+                rescueSteroidInstructionsPlaceholder: "說明 (例如: 每日30毫克 x 7天)",
+                rescueAbxInstructionsPlaceholder: "說明 (例如: 每日500毫克，每日三次 x 7天)"
+            },
+            ar: { // Arabic
+                title: "خطة عمل مرض الانسداد الرئوي المزمن",
+                clinicName: "مركز كينغستون الصحي المجتمعي",
+                nameLabel: "الاسم:",
+                dateLabel: "التاريخ:",
+                preventerLabel: "دواء الوقاية",
+                relieverLabel: "أدوية الإغاثة",
+                regularAbxLabel: "المضادات الحيوية العادية",
+                oxygenLabel: "العلاج بالأكسجين",
+                rescueSteroidLabel: "الستيرويد الإنقاذي",
+                rescueAbxLabel: "المضاد الحيوي الإنقاذي",
+                greenTitle: "✅ المنطقة الخضراء: حالة جيدة",
+                greenSymptom1: "التنفس طبيعي",
+                greenSympt2: "السعال/البلغم المعتاد",
+                greenActionsLabel: "الإجراءات:",
+                greenAction1: "تناول دواء الوقاية",
+                greenAction2: "البقاء نشيطًا",
+                greenAction3: "تجنب المحفزات",
+                yellowTitle: "⚠ المنطقة الصفراء: الأعراض تتفاقم",
+                yellowSympt1: "زيادة ضيق التنفس",
+                yellowSympt2: "زيادة السعال/البلغم",
+                yellowSympt3: "تغير لون البلغم",
+                yellowActionsLabel: "الإجراءات:",
+                yellowAction1: "ابدأ أدوية الإنقاذ",
+                yellowAction2: "استخدم دواء الإغاثة بشكل متكرر",
+                yellowAction3: "اتصل بالعيادة إذا لم يحدث تحسن",
+                redTitle: "🚨 المنطقة الحمراء: أعراض شديدة",
+                redSympt1: "ضيق تنفس شديد",
+                redSympt2: "لا يستطيع التحدث بجمل",
+                redSympt3: "شفاه/أظافر زرقاء",
+                redActionsLabel: "الإجراءات:",
+                redAction1: "اتصل بالرقم 911 فورًا",
+                redAction2: "استخدم دواء الإغاثة",
+                redAction3: "تناول أدوية الإنقاذ",
+                bottomPreventerLabel: "الوقاية:",
+                bottomRelieverLabel: "الإغاثة:",
+                printButton: "طباعة",
+                savePdfButton: "طباعة / حفظ كملف PDF",
+                preventerInstructionsPlaceholder: "التعليمات",
+                relieverInstructionsPlaceholder: "التعليمات",
+                regularAbxInstructionsPlaceholder: "التعليمات",
+                oxygenInstructionsPlaceholder: "التعليمات (مثال: 2 لتر/دقيقة)",
+                rescueSteroidInstructionsPlaceholder: "التعليمات (مثال: 30 ملغ يوميًا × 7 أيام)",
+                rescueAbxInstructionsPlaceholder: "التعليمات (مثال: 500 ملغ ثلاث مرات يوميًا × 7 أيام)"
+            },
+            hi: { // Hindi
+                title: "सीओपीडी कार्य योजना",
+                clinicName: "किंग्स्टन सामुदायिक स्वास्थ्य केंद्र",
+                nameLabel: "नाम:",
+                dateLabel: "दिनांक:",
+                preventerLabel: "निवारक दवा",
+                relieverLabel: "राहत दवा",
+                regularAbxLabel: "नियमित एंटीबायोटिक्स",
+                oxygenLabel: "ऑक्सीजन थेरेपी",
+                rescueSteroidLabel: "आपातकालीन स्टेरॉयड",
+                rescueAbxLabel: "आपातकालीन एंटीबायोटिक",
+                greenTitle: "✅ ग्रीन ज़ोन: अच्छा कर रहे हैं",
+                greenSymptom1: "सांस सामान्य",
+                greenSympt2: "सामान्य खांसी/बलगम",
+                greenActionsLabel: "कार्य:",
+                greenAction1: "निवारक दवा लें",
+                greenAction2: "सक्रिय रहें",
+                greenAction3: "ट्रिगर्स से बचें",
+                yellowTitle: "⚠ पीला ज़ोन: लक्षण बिगड़ रहे हैं",
+                yellowSympt1: "सांस फूलना बढ़ा",
+                yellowSympt2: "अधिक खांसी/बलगम",
+                yellowSympt3: "बलगम का रंग बदलना",
+                yellowActionsLabel: "कार्य:",
+                yellowAction1: "आपातकालीन दवाएं शुरू करें",
+                yellowAction2: "राहत दवा का अधिक बार उपयोग करें",
+                yellowAction3: "सुधार न होने पर क्लिनिक से संपर्क करें",
+                redTitle: "🚨 लाल ज़ोन: गंभीर लक्षण",
+                redSympt1: "गंभीर सांस फूलना",
+                redSympt2: "वाक्यों में बात नहीं कर सकते",
+                redSympt3: "होंठ/नाखून नीले",
+                redActionsLabel: "कार्य:",
+                redAction1: "तुरंत 911 पर कॉल करें",
+                redAction2: "राहत दवा का उपयोग करें",
+                redAction3: "आपातकालीन दवाएं लें",
+                bottomPreventerLabel: "निवारक:",
+                bottomRelieverLabel: "राहत:",
+                printButton: "प्रिंट करें",
+                savePdfButton: "प्रिंट करें / पीडीएफ के रूप में सहेजें",
+                preventerInstructionsPlaceholder: "निर्देश",
+                relieverInstructionsPlaceholder: "निर्देश",
+                regularAbxInstructionsPlaceholder: "निर्देश",
+                oxygenInstructionsPlaceholder: "निर्देश (उदा. 2ली/मिनट)",
+                rescueSteroidInstructionsPlaceholder: "निर्देश (उदा. 30मिग्रा प्रतिदिन x 7 दिन)",
+                rescueAbxInstructionsPlaceholder: "निर्देश (उदा. 500मिग्रा TID x 7 दिन)"
+            }
+        };
+
+        function applyTranslations(lang) {
+            const t = translations[lang];
+            if (!t) {
+                console.warn(`No translations found for language: ${lang}`);
+                return;
+            }
+
+            const elementsToTranslate = [
+                { id: 'title', prop: 'textContent', key: 'title' },
+                { id: 'clinic-name', prop: 'textContent', key: 'clinicName' },
+                { id: 'name-label', prop: 'textContent', key: 'nameLabel' },
+                { id: 'date-label', prop: 'textContent', key: 'dateLabel' },
+                { id: 'preventer-label', prop: 'textContent', key: 'preventerLabel' },
+                { id: 'reliever-label', prop: 'textContent', key: 'relieverLabel' },
+                { id: 'regular-abx-label', prop: 'textContent', key: 'regularAbxLabel' },
+                { id: 'oxygen-label', prop: 'textContent', key: 'oxygenLabel' },
+                { id: 'rescue-steroid-label', prop: 'textContent', key: 'rescueSteroidLabel' },
+                { id: 'rescue-abx-label', prop: 'textContent', key: 'rescueAbxLabel' },
+                { id: 'preventer-instructions', prop: 'placeholder', key: 'preventerInstructionsPlaceholder' },
+                { id: 'reliever-instructions', prop: 'placeholder', key: 'relieverInstructionsPlaceholder' },
+                { id: 'regular-abx-instructions', prop: 'placeholder', key: 'regularAbxInstructionsPlaceholder' },
+                { id: 'oxygen-instructions', prop: 'placeholder', key: 'oxygenInstructionsPlaceholder' },
+                { id: 'rescue-steroid-instructions', prop: 'placeholder', key: 'rescueSteroidInstructionsPlaceholder' },
+                { id: 'rescue-abx-instructions', prop: 'placeholder', key: 'rescueAbxInstructionsPlaceholder' },
+                { id: 'green-title', prop: 'textContent', key: 'greenTitle' },
+                { id: 'greenSymptom1', prop: 'textContent', key: 'greenSymptom1' },
+                { id: 'greenSympt2', prop: 'textContent', key: 'greenSympt2' },
+                { id: 'green-actions-label', prop: 'textContent', key: 'greenActionsLabel' },
+                { id: 'green-action1', prop: 'textContent', key: 'greenAction1' },
+                { id: 'green-action2', prop: 'textContent', key: 'greenAction2' },
+                { id: 'green-action3', prop: 'textContent', key: 'greenAction3' },
+                { id: 'yellow-title', prop: 'textContent', key: 'yellowTitle' },
+                { id: 'yellowSympt1', prop: 'textContent', key: 'yellowSympt1' },
+                { id: 'yellowSympt2', prop: 'textContent', key: 'yellowSympt2' },
+                { id: 'yellowSympt3', prop: 'textContent', key: 'yellowSympt3' },
+                { id: 'yellow-actions-label', prop: 'textContent', key: 'yellowActionsLabel' },
+                { id: 'yellow-action1', prop: 'textContent', key: 'yellowAction1' },
+                { id: 'yellow-action2', prop: 'textContent', key: 'yellowAction2' },
+                { id: 'yellow-action3', prop: 'textContent', key: 'yellowAction3' },
+                { id: 'red-title', prop: 'textContent', key: 'redTitle' },
+                { id: 'redSympt1', prop: 'textContent', key: 'redSympt1' },
+                { id: 'redSympt2', prop: 'textContent', key: 'redSympt2' },
+                { id: 'redSympt3', prop: 'textContent', key: 'redSympt3' },
+                { id: 'red-actions-label', prop: 'textContent', key: 'redActionsLabel' },
+                { id: 'red-action1', prop: 'textContent', key: 'redAction1' },
+                { id: 'red-action2', prop: 'textContent', key: 'redAction2' },
+                { id: 'red-action3', prop: 'textContent', key: 'redAction3' },
+                { id: 'bottom-preventer-label', prop: 'textContent', key: 'bottomPreventerLabel' },
+                { id: 'bottom-reliever-label', prop: 'textContent', key: 'bottomRelieverLabel' },
+                { id: 'print-button', prop: 'textContent', key: 'printButton' },
+                { id: 'save-pdf-button', prop: 'textContent', key: 'savePdfButton' }
+            ];
+
+            elementsToTranslate.forEach(item => {
+                const element = document.getElementById(item.id);
+                if (element) {
+                    if (item.prop === 'textContent') {
+                        element.textContent = t[item.key];
+                    } else if (item.prop === 'placeholder') {
+                        element.placeholder = t[item.key];
+                    }
+                } else {
+                    console.warn(`Element with ID '${item.id}' not found for translation.`);
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('plan-date').valueAsDate = new Date();
+            const initialLang = document.getElementById('language-select').value;
+            applyTranslations(initialLang);
+            preventerSelect.dispatchEvent(new Event('change'));
+            relieverSelect.dispatchEvent(new Event('change'));
+        });
+
+        document.getElementById('language-select').addEventListener('change', function() {
+            const selectedLang = this.value;
+            applyTranslations(selectedLang);
+        });
+
+        document.getElementById('print-button').onclick = function() {
+            window.print();
+        };
+        document.getElementById('save-pdf-button').onclick = function() {
+            window.print();
+        };
+    </script>
+</body>
+</html>

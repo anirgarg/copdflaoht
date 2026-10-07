@@ -5,7 +5,7 @@
  * clinic template file.
  */
 
-const APP_VERSION = '2.1';
+const APP_VERSION = '2.1.1'; // also update the ?v= tags in index.html
 
 // ---- Author credit (printed in the footer and shown in the tool) ----
 const AUTHOR = {

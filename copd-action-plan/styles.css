@@ -79,6 +79,8 @@ input[type="checkbox"], input[type="radio"] { width: 17px; height: 17px; accent-
   border: 1px dashed color-mix(in srgb, var(--accent) 55%, var(--line)); border-radius: 7px;
   background: none; color: var(--accent); font-weight: 700; font-size: 13px; text-align: start; cursor: pointer;
 }
+.wording-btns { gap: 4px 18px; margin-top: 6px; }
+.wording-hint { margin-top: 10px; }
 .add-btn:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .icon-btn {
   width: 28px; height: 30px; border: 1px solid transparent; border-radius: 6px;
@@ -166,14 +168,15 @@ label.check, .radios label { display: flex; gap: 8px; align-items: center; font-
 @media (max-width: 520px) {
   .lrow { flex-wrap: wrap; }
   .lrow-fields { flex-wrap: wrap; flex-basis: 100%; }
-  .med-pick, .lrow-fields > input { flex-basis: 100%; }
+  .med-pick, .lrow-fields > input[type="text"] { flex-basis: 100%; }
+  .lrow-fields > .inc + input[type="text"] { flex-basis: calc(100% - 30px); }
   .lrow-ctrl { margin-inline-start: auto; }
 }
 
 /* ============================================================
    PRINTED PAGES — portrait, KCHC header band, CTS-style three-column zones
    ============================================================ */
-.sheet-wrap { min-width: 0; position: sticky; top: 76px; max-height: calc(100vh - 90px); overflow: auto; }
+.sheet-wrap { min-width: 0; position: sticky; top: calc(var(--topbar-h, 76px) + 12px); max-height: calc(100vh - var(--topbar-h, 76px) - 24px); overflow: auto; }
 @media (max-width: 1060px) { .sheet-wrap { position: static; max-height: none; } }
 .sheet { display: grid; gap: 18px; justify-content: start; }
 
@@ -273,10 +276,10 @@ label.check, .radios label { display: flex; gap: 8px; align-items: center; font-
 }
 .z-name { font-weight: 700; font-size: 11pt; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1.1; }
 .z-feel { font-size: 9pt; line-height: 1.15; }
-.z-signs { background: var(--zt); padding: 6px 4px 6px 0; display: flex; flex-direction: column; gap: 6px; }
+.z-signs { background: var(--zt); padding-block: 6px; padding-inline: 0 4px; display: flex; flex-direction: column; gap: 6px; }
 .z-signs .bullets li::marker { color: var(--zc); }
 .zone.yellow .z-signs .bullets li::marker { color: #9a7a00; }
-.z-actions { padding: 6px 10px 6px 0; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.z-actions { padding-block: 6px; padding-inline: 0 10px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 
 .act { display: grid; gap: 1px; }
 .act + .act { border-top: 1px solid var(--p-rule); padding-top: 4px; }

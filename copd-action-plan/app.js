@@ -1,9 +1,12 @@
 /* COPD Action Plan — editor + printable two-page plan.
  *
  * State has two parts:
- *   template — clinic details, wording, resources, layout. Remembered in this browser.
- *   plan     — everything about the patient. Never stored by the app; the clinician
- *              can save it to a file on their own computer.
+ *   template — clinic details, default wording, resources, layout. Remembered in this
+ *              browser and shareable as a clinic template file.
+ *   plan     — everything about this patient, including the plan language, who prepared
+ *              it, and the wording/ticks used on this plan. Never stored by the app; the
+ *              clinician can save it to a file on their own computer.
+ * A new plan starts from the template's defaults ("Save as clinic default" updates them).
  * The printed pages are re-rendered from state on every change. */
 (function () {
   'use strict';
@@ -16,22 +19,32 @@
   const emptyMed = () => ({ med: '', other: '', instr: '' });
   const listFromKeys = keys => keys.map(key => ({ key, on: !OPTIONAL_ITEMS.includes(key) }));
 
-  function defaultTemplate() {
+  const has = (obj, key) => typeof key === 'string' && Object.prototype.hasOwnProperty.call(obj, key);
+  const isTextKey = key => has(TRANSLATIONS.en, key) && typeof TRANSLATIONS.en[key] === 'string';
+  function builtInLists() {
     const lists = {};
     Object.keys(DEFAULT_LISTS).forEach(k => { lists[k] = listFromKeys(DEFAULT_LISTS[k]); });
+    return lists;
+  }
+
+  function defaultTemplate() {
     return {
-      lang: 'en',
-      clinic: { ...CLINIC_DEFAULTS, logo: '' },
-      lists,
+      defaultLang: 'en',
+      clinic: { name: CLINIC_DEFAULTS.name, program: CLINIC_DEFAULTS.program, phone: CLINIC_DEFAULTS.phone,
+                afterHours: CLINIC_DEFAULTS.afterHours, emergency: CLINIC_DEFAULTS.emergency, logo: '' },
+      defaultLists: builtInLists(),
       texts: { days: '2–3', step2cDo: '', step3Do: '' },
       resources: clone(RESOURCE_DEFAULTS),
       opts: { page2: true, breathing: true, care: true, images: true, ticks: false, greyscale: false, paper: 'letter' },
     };
   }
 
-  function defaultPlan() {
+  // A new plan starts from the clinic template's default language and wording.
+  function defaultPlan(tpl) {
     return {
-      patient: { name: '', date: todayISO(), review: addMonthsISO(todayISO(), 12) },
+      lang: tpl ? tpl.defaultLang : 'en',
+      patient: { name: '', date: todayISO(), review: addMonthsISO(todayISO(), 12), provider: '' },
+      lists: tpl ? clone(tpl.defaultLists) : builtInLists(),
       meds: { daily: [emptyMed()], reliever: [emptyMed()], rescueSteroid: [emptyMed()], rescueAbx: [emptyMed()] },
       baseline: { phlegm: '', spo2: '' },
       oxygen: { use: '', rest: '', activity: '', sleep: '', hours: '' },
@@ -69,25 +82,43 @@
     }
     return typeof saved === typeof base ? saved : base;
   }
-  const cleanList = items => items
-    .filter(i => i && (typeof i.text === 'string' || (i.key && TRANSLATIONS.en[i.key])))
-    .map(i => (i.key && TRANSLATIONS.en[i.key]) ? { key: i.key, on: i.on !== false } : { text: String(i.text), on: i.on !== false });
+  const cleanList = items => (Array.isArray(items) ? items : [])
+    .filter(i => i && typeof i === 'object' && (typeof i.text === 'string' || isTextKey(i.key)))
+    .map(i => (isTextKey(i.key) ? { key: i.key, on: i.on !== false } : { text: i.text, on: i.on !== false }));
+  const cleanLists = (lists, fallback) => {
+    const out = {};
+    Object.keys(DEFAULT_LISTS).forEach(k => {
+      out[k] = lists && typeof lists === 'object' && Array.isArray(lists[k]) ? cleanList(lists[k]) : clone(fallback[k]);
+    });
+    return out;
+  };
+  const validLang = (lang, fallback) => (has(TRANSLATIONS, lang) && LANGUAGES.some(l => l[0] === lang) ? lang : fallback);
   const cleanRows = (rows, shape) => rows.filter(r => r && typeof r === 'object')
     .map(r => { const o = {}; Object.keys(shape).forEach(k => { o[k] = typeof r[k] === 'string' ? r[k] : shape[k]; }); return o; });
 
   function hydrateTemplate(saved) {
+    saved = saved && typeof saved === 'object' ? saved : {};
     const t = merge(defaultTemplate(), saved);
-    if (!TRANSLATIONS[t.lang]) t.lang = 'en';
-    Object.keys(DEFAULT_LISTS).forEach(k => { t.lists[k] = cleanList(t.lists[k] || []); });
+    // Older templates (v2.0/2.1) stored the language as `lang` and the wording as `lists`.
+    t.defaultLang = validLang(has(saved, 'defaultLang') ? saved.defaultLang : saved.lang, 'en');
+    t.defaultLists = cleanLists(has(saved, 'defaultLists') ? saved.defaultLists : saved.lists, builtInLists());
     t.resources = cleanRows(t.resources, { label: '', detail: '' });
     if (!['letter', 'a4'].includes(t.opts.paper)) t.opts.paper = 'letter';
     if (typeof t.clinic.logo !== 'string' || !t.clinic.logo.startsWith('data:image/')) t.clinic.logo = '';
     return t;
   }
-  function hydratePlan(saved) {
-    const p = merge(defaultPlan(), saved);
+  // `tpl` supplies the language/wording for plan files saved before those moved into the plan.
+  function hydratePlan(saved, tpl) {
+    saved = saved && typeof saved === 'object' ? saved : {};
+    const p = merge(defaultPlan(tpl), saved);
+    p.lang = validLang(saved.lang, tpl.defaultLang);
+    p.lists = cleanLists(saved.lists, tpl.defaultLists);
     Object.keys(p.meds).forEach(k => {
-      p.meds[k] = cleanRows(p.meds[k], emptyMed());
+      p.meds[k] = cleanRows(p.meds[k], emptyMed()).map(r => {
+        // A medicine no longer in the pick-list keeps its name as "Other".
+        if (r.med && r.med !== '__other' && !medOptions(k).some(o => o[0] === r.med)) return { med: '__other', other: r.med, instr: r.instr };
+        return r;
+      });
       if (!p.meds[k].length) p.meds[k].push(emptyMed());
     });
     p.amb.contacts = cleanRows(p.amb.contacts, { name: '', rel: '', phone: '' });
@@ -97,7 +128,8 @@
   function pick(obj, keys) { const o = {}; keys.forEach(k => { o[k] = obj[k]; }); return clone(o); }
 
   // ---------- state ----------
-  let state = { ...loadTemplate(), ...defaultPlan() };
+  const initialTemplate = loadTemplate();
+  let state = { ...initialTemplate, ...defaultPlan(initialTemplate) };
   let planDirty = false;
   let reviewTouched = false;
 
@@ -121,12 +153,14 @@
   function t(key) {
     const dict = TRANSLATIONS[state.lang] || TRANSLATIONS.en;
     const s = dict[key] != null ? dict[key] : (TRANSLATIONS.en[key] || '');
-    return s.replace('{emergency}', state.clinic.emergency.trim() || '911')
-            .replace('{days}', state.texts.days.trim() || '2–3');
+    const emergency = state.clinic.emergency.trim() || '911';
+    const days = state.texts.days.trim() || '2–3';
+    return s.replaceAll('{emergency}', () => emergency).replaceAll('{days}', () => days);
   }
   const itemText = item => (item.key ? t(item.key) : item.text);
 
   function medOptions(cat) { return MED_CATEGORIES[cat].groups.flatMap(g => g[1]); }
+  const medImage = med => (has(MED_IMAGES, med) ? MED_IMAGES[med] : '');
   function medName(cat, row) {
     if (row.med === '__other') return row.other.trim();
     const opt = medOptions(cat).find(o => o[0] === row.med);
@@ -198,15 +232,15 @@
     });
   });
 
-  // Placeholders that follow the clinic defaults
-  $('#clinic-name').placeholder = CLINIC_DEFAULTS.name;
-
-  const langSelect = $('#lang-select');
-  LANGUAGES.forEach(([code, label]) => langSelect.append(el('option', { value: code, text: label })));
+  ['#lang-select', '#default-lang'].forEach(sel => {
+    const select = $(sel);
+    if (select) LANGUAGES.forEach(([code, label]) => select.append(el('option', { value: code, text: label })));
+  });
 
   // ---- generic list editor: add / remove / reorder rows ----
+  // cfg.path names the state it edits ('meds', 'lists', 'amb', 'resources') for change tracking.
   function mountList(container, cfg) {
-    const draw = (focusIndex) => {
+    const draw = (focus) => {
       const items = cfg.items();
       container.replaceChildren();
       const ul = el('ol', { class: 'lrows', 'aria-label': cfg.label });
@@ -214,33 +248,39 @@
         const move = (dir) => {
           const j = i + dir;
           [items[i], items[j]] = [items[j], items[i]];
-          draw(j);
-          changed();
+          draw({ index: j, control: dir < 0 ? 'up' : 'down' });
+          changed(cfg.path);
         };
         const li = el('li', { class: 'lrow' + (item.on === false ? ' off' : '') },
           el('div', { class: 'lrow-fields' }, cfg.render(item, i)),
           el('div', { class: 'lrow-ctrl' },
-            cfg.reorder !== false && el('button', { type: 'button', class: 'icon-btn', title: 'Move up', 'aria-label': 'Move up', disabled: i === 0, text: '↑', onclick: () => move(-1) }),
-            cfg.reorder !== false && el('button', { type: 'button', class: 'icon-btn', title: 'Move down', 'aria-label': 'Move down', disabled: i === items.length - 1, text: '↓', onclick: () => move(1) }),
+            cfg.reorder !== false && el('button', { type: 'button', class: 'icon-btn', 'data-ctl': 'up', title: 'Move up', 'aria-label': 'Move up', disabled: i === 0, text: '↑', onclick: () => move(-1) }),
+            cfg.reorder !== false && el('button', { type: 'button', class: 'icon-btn', 'data-ctl': 'down', title: 'Move down', 'aria-label': 'Move down', disabled: i === items.length - 1, text: '↓', onclick: () => move(1) }),
             el('button', {
               type: 'button', class: 'icon-btn del', title: 'Remove', 'aria-label': 'Remove row', text: '×',
               onclick: () => {
                 items.splice(i, 1);
                 if (cfg.keepOne && !items.length) items.push(cfg.create());
-                draw(Math.min(i, items.length - 1));
-                changed();
+                draw({ index: Math.min(i, items.length - 1) });
+                changed(cfg.path);
               },
             })));
         ul.append(li);
       });
-      container.append(ul, el('button', {
+      const addBtn = el('button', {
         type: 'button', class: 'add-btn', text: '+ ' + cfg.addLabel,
-        onclick: () => { items.push(cfg.create()); draw(items.length - 1); changed(); },
-      }));
-      if (focusIndex != null && focusIndex >= 0) {
-        const row = ul.children[focusIndex];
-        const target = row && row.querySelector('input[type="text"], select, input:not([type])');
-        if (target) target.focus();
+        onclick: () => { items.push(cfg.create()); draw({ index: items.length - 1 }); changed(cfg.path); },
+      });
+      container.append(ul, addBtn);
+      if (focus) {
+        const row = ul.children[focus.index];
+        let target = null;
+        if (row && focus.control) {
+          // Keep focus on the move button so it can be pressed again; fall back to the other one at the ends.
+          target = row.querySelector(`[data-ctl="${focus.control}"]:not(:disabled)`) || row.querySelector('[data-ctl]:not(:disabled)');
+        }
+        if (!target && row) target = row.querySelector('input[type="text"], select');
+        (target || addBtn).focus();
       }
     };
     draw();
@@ -262,10 +302,10 @@
         row.med = select.value;
         other.hidden = row.med !== '__other';
         if (!other.hidden) other.focus();
-        changed();
+        changed('meds');
       });
-      other.addEventListener('input', () => { row.other = other.value; changed(); });
-      instr.addEventListener('input', () => { row.instr = instr.value; changed(); });
+      other.addEventListener('input', () => { row.other = other.value; changed('meds'); });
+      instr.addEventListener('input', () => { row.instr = instr.value; changed('meds'); });
       return [el('div', { class: 'med-pick' }, select, other), instr];
     };
   }
@@ -277,16 +317,16 @@
     check.addEventListener('change', () => {
       item.on = check.checked;
       check.closest('.lrow').classList.toggle('off', !item.on);
-      changed();
+      changed('lists');
     });
-    input.addEventListener('input', () => { delete item.key; item.text = input.value; changed(); });
+    input.addEventListener('input', () => { delete item.key; item.text = input.value; changed('lists'); });
     return [check, input];
   }
 
-  function fieldsRow(fields) {
+  function fieldsRow(fields, path) {
     return (row) => fields.map(([key, label, cls]) => {
       const input = el('input', { type: 'text', class: cls || '', placeholder: label, 'aria-label': label, value: row[key] });
-      input.addEventListener('input', () => { row[key] = input.value; changed(); });
+      input.addEventListener('input', () => { row[key] = input.value; changed(path); });
       return input;
     });
   }
@@ -295,39 +335,47 @@
     document.querySelectorAll('[data-meds]').forEach(c => {
       const cat = c.dataset.meds;
       mountList(c, {
-        items: () => state.meds[cat], render: medRow(cat), create: emptyMed, keepOne: true,
-        addLabel: cat === 'daily' ? 'Add another daily medicine' : 'Add another', label: TRANSLATIONS.en[MED_CATEGORIES[cat].labelKey],
+        items: () => state.meds[cat], render: medRow(cat), create: emptyMed, keepOne: true, path: 'meds',
+        addLabel: cat === 'daily' ? 'Add another daily medicine' : 'Add another', label: MED_CATEGORIES[cat].label,
       });
     });
     document.querySelectorAll('[data-list]').forEach(c => {
       const key = c.dataset.list;
       mountList(c, {
-        items: () => state.lists[key], render: textItemRow, create: () => ({ text: '', on: true }),
+        items: () => state.lists[key], render: textItemRow, create: () => ({ text: '', on: true }), path: 'lists',
         addLabel: c.dataset.add || 'Add item', label: c.dataset.add,
       });
     });
     mountList($('#contacts-editor'), {
-      items: () => state.amb.contacts, create: () => ({ name: '', rel: '', phone: '' }), addLabel: 'Add contact', label: 'Emergency contacts',
-      render: fieldsRow([['name', 'Name'], ['rel', 'Relationship', 'narrow'], ['phone', 'Phone', 'narrow']]),
+      items: () => state.amb.contacts, create: () => ({ name: '', rel: '', phone: '' }), addLabel: 'Add contact', label: 'Emergency contacts', path: 'amb',
+      render: fieldsRow([['name', 'Name'], ['rel', 'Relationship', 'narrow'], ['phone', 'Phone', 'narrow']], 'amb'),
     });
     mountList($('#resources-editor'), {
-      items: () => state.resources, create: () => ({ label: '', detail: '' }), addLabel: 'Add resource', label: 'Resources',
-      render: fieldsRow([['label', 'Name'], ['detail', 'Phone / website']]),
+      items: () => state.resources, create: () => ({ label: '', detail: '' }), addLabel: 'Add resource', label: 'Resources', path: 'resources',
+      render: fieldsRow([['label', 'Name'], ['detail', 'Phone / website']], 'resources'),
     });
   }
 
-  document.querySelectorAll('[data-reset-list]').forEach(btn => {
+  // Wording lists: this plan's copy vs. the clinic default used for new patients
+  document.querySelectorAll('[data-save-default]').forEach(btn => {
     btn.addEventListener('click', () => {
-      btn.dataset.resetList.split(' ').forEach(k => { state.lists[k] = listFromKeys(DEFAULT_LISTS[k]); });
+      btn.dataset.saveDefault.split(' ').forEach(k => { state.defaultLists[k] = clone(state.lists[k]); });
+      saveTemplate();
+      status('Saved as the clinic default for new patients.');
+    });
+  });
+  document.querySelectorAll('[data-use-default]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.dataset.useDefault.split(' ').forEach(k => { state.lists[k] = clone(state.defaultLists[k]); });
       mountListEditors();
-      changed();
-      status('Default wording restored.');
+      changed('lists');
+      status('Using the clinic default wording on this plan.');
     });
   });
   $('#reset-resources').addEventListener('click', () => {
     state.resources = clone(RESOURCE_DEFAULTS);
     mountListEditors();
-    changed();
+    changed('resources');
   });
 
   // ---- logo ----
@@ -346,7 +394,7 @@
         canvas.height = Math.round(img.height * scale);
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
         state.clinic.logo = canvas.toDataURL('image/png');
-        changed();
+        changed('clinic.logo');
         status('Logo added.');
       };
       img.onerror = () => status('That image could not be read.', true);
@@ -354,7 +402,7 @@
     };
     reader.readAsDataURL(file);
   });
-  $('#logo-remove').addEventListener('click', () => { state.clinic.logo = ''; changed(); });
+  $('#logo-remove').addEventListener('click', () => { state.clinic.logo = ''; changed('clinic.logo'); });
 
   // ---- files ----
   function download(filename, data) {
@@ -377,30 +425,44 @@
       reader.readAsText(file);
     });
   }
-  const slug = s => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  // Filename-safe; keeps letters in any script, drops punctuation
+  const slug = s => s.trim().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '').slice(0, 40);
 
   $('#template-save').addEventListener('click', () => {
-    download(`copd-plan-clinic-template${state.clinic.name ? '-' + slug(state.clinic.name) : ''}.json`,
+    download(`copd-plan-clinic-template${slug(state.clinic.name) ? '-' + slug(state.clinic.name) : ''}.json`,
       { app: 'copd-action-plan', kind: 'template', version: APP_VERSION, ...pick(state, TEMPLATE_FIELDS) });
     status('Clinic template saved. It contains no patient information.');
   });
   readJSONFile($('#template-file'), (data, name) => {
-    state = { ...state, ...hydrateTemplate(data.kind === 'plan' ? data.template : data) };
+    if (!data || typeof data !== 'object' || data.kind === 'plan') {
+      status('That is a patient plan, not a clinic template. Use "Open plan file" for patient plans.', true);
+      return;
+    }
+    const tpl = hydrateTemplate(data); // build fully before touching state
+    state = { ...state, ...tpl };
     renderAll();
     saveTemplate();
     status(`Clinic template loaded from ${name}.`);
   });
 
   $('#plan-save').addEventListener('click', () => {
-    const who = state.patient.name ? '-' + slug(state.patient.name) : '';
+    const who = slug(state.patient.name) ? '-' + slug(state.patient.name) : '';
     download(`copd-action-plan${who}-${state.patient.date || todayISO()}.json`,
-      { app: 'copd-action-plan', kind: 'plan', version: APP_VERSION, plan: pick(state, PLAN_FIELDS), template: pick(state, TEMPLATE_FIELDS) });
+      { app: 'copd-action-plan', kind: 'plan', version: APP_VERSION, plan: pick(state, PLAN_FIELDS) });
     planDirty = false;
     status('Plan saved to your computer. Store it as you would any health record.');
   });
   readJSONFile($('#plan-file'), (data, name) => {
-    if (data.kind !== 'plan' || !data.plan) { status('That is not a saved patient plan. Use "Load clinic template" for template files.', true); return; }
-    state = { ...state, ...hydratePlan(data.plan), ...(data.template ? hydrateTemplate(data.template) : {}) };
+    if (!data || data.kind !== 'plan' || !data.plan) { status('That is not a saved patient plan. Use "Load template" for clinic template files.', true); return; }
+    // Plans saved before v2.2 kept the language and wording in data.template; use them if present.
+    const legacy = data.template && typeof data.template === 'object' ? hydrateTemplate(data.template) : null;
+    const base = {
+      defaultLang: legacy && (has(data.template, 'lang') || has(data.template, 'defaultLang')) ? legacy.defaultLang : state.defaultLang,
+      defaultLists: legacy && (has(data.template, 'lists') || has(data.template, 'defaultLists')) ? legacy.defaultLists : state.defaultLists,
+    };
+    const plan = hydratePlan(data.plan, base); // the clinic template on this computer is left as it is
+    state = { ...state, ...plan };
     reviewTouched = true;
     planDirty = false;
     renderAll();
@@ -409,18 +471,20 @@
 
   $('#new-patient').addEventListener('click', () => {
     if (planDirty && !window.confirm('Clear this patient\'s details and start a new plan? Unsaved changes will be lost.')) return;
-    state = { ...state, ...defaultPlan() };
+    const provider = state.patient.provider; // the same clinician usually sees the next patient
+    state = { ...state, ...defaultPlan(state) };
+    state.patient.provider = provider;
     reviewTouched = false;
     planDirty = false;
     renderAll();
     status('Ready for a new patient.');
   });
   $('#reset-template').addEventListener('click', () => {
-    if (!window.confirm('Reset clinic details, wording, resources and layout to the original defaults?')) return;
+    if (!window.confirm('Reset the clinic template (clinic details, default wording, resources and layout) to the original defaults? This patient\'s plan is not changed.')) return;
     state = { ...state, ...defaultTemplate() };
     try { localStorage.removeItem(TEMPLATE_KEY); } catch (e) { /* ignore */ }
     renderAll();
-    status('Clinic settings reset.');
+    status('Clinic template reset. This patient\'s plan is unchanged.');
   });
 
   window.addEventListener('beforeunload', e => {
@@ -465,9 +529,9 @@
   function medLines(cat) {
     const rows = filledMeds(cat);
     if (!rows.length) return line('wide');
-    const anyImg = state.opts.images && rows.some(r => MED_IMAGES[r.med]);
+    const anyImg = state.opts.images && rows.some(r => medImage(r.med));
     return el('ul', { class: 'meds' }, rows.map(r => {
-      const img = anyImg && MED_IMAGES[r.med];
+      const img = anyImg && medImage(r.med);
       return el('li', null,
         img ? el('img', { src: img, alt: '' }) : anyImg && el('span', { class: 'img-slot' }),
         el('span', { class: 'mtext' },
@@ -491,12 +555,12 @@
   }
 
   function brandBar(small) {
-    const clinicName = state.clinic.name.trim() || CLINIC_DEFAULTS.name;
+    const clinicName = state.clinic.name.trim();
     const program = state.clinic.program.trim();
     return el('div', { class: 'brandbar' + (small ? ' small' : '') },
       state.clinic.logo && el('img', { class: 'logo', src: state.clinic.logo, alt: '' }),
       el('div', { class: 'brand-text' },
-        el('span', { class: 'brand-clinic', dir: 'auto', text: clinicName }),
+        clinicName && el('span', { class: 'brand-clinic', dir: 'auto', text: clinicName }),
         program && el('span', { class: 'brand-program', dir: 'auto', text: program })),
       state.clinic.phone.trim() && el('span', { class: 'brand-phone', dir: 'auto', text: state.clinic.phone.trim() }));
   }
@@ -514,7 +578,7 @@
         field('nameLabel', state.patient.name.trim(), 'wide'),
         field('dateLabel', fmt(state.patient.date)),
         field('reviewLabel', fmt(state.patient.review)),
-        field('preparedLabel', state.clinic.provider.trim(), 'full')));
+        field('preparedLabel', state.patient.provider.trim(), 'full')));
 
     const cols = el('div', { class: 'col-heads', 'aria-hidden': 'true' },
       el('span', { text: t('colZone') }), el('span', { text: t('colNotice') }), el('span', { text: t('colDo') }));
@@ -566,7 +630,7 @@
       ]),
       step('3', [
         el('p', { class: 'if' }, el('b', null, t('step3'), C()), SP(), state.texts.step3Do.trim() ? auto(state.texts.step3Do.trim()) : t('step3Do')),
-        phoneBits.length && el('p', { class: 'phones', dir: 'auto', text: phoneBits.join(' · ') }),
+        phoneBits.length > 0 && el('p', { class: 'phones', dir: 'auto', text: phoneBits.join(' · ') }),
       ]),
     ]);
 
@@ -634,7 +698,7 @@
       el('p', { class: 'settle', text: t('settle') }));
 
     const resources = state.resources.filter(r => r.label.trim() || r.detail.trim());
-    const res = resources.length && el('section', { class: 'resources' },
+    const res = resources.length > 0 && el('section', { class: 'resources' },
       el('h3', { text: t('resourcesTitle') }),
       el('ul', null, resources.map(r => el('li', null, el('b', { dir: 'auto', text: r.label.trim() }), r.detail.trim() && el('span', { dir: 'auto', text: r.detail.trim() })))));
 
@@ -664,8 +728,15 @@
     sheet.style.setProperty('--page-h', paper.h);
     $('#page-style').textContent = `@page { size: ${state.opts.paper === 'a4' ? 'A4' : 'letter'} portrait; margin: 0; }`;
     sheet.replaceChildren(...[renderPage1(), state.opts.page2 && renderPage2()].filter(Boolean));
-    fitPreview();
+    sheet.querySelectorAll('img').forEach(img => { if (!img.complete) img.addEventListener('load', refit, { once: true }); });
+    refit();
+  }
+
+  // Fit text at true size (zoom 1, exactly as printed), then scale the preview to the column.
+  function refit() {
+    $('#sheet').style.zoom = 1;
     checkOverflow();
+    fitPreview();
   }
 
   // Scale the true-size pages to fit the preview column.
@@ -708,10 +779,19 @@
       .map(p => (p.classList.contains('p1') ? '1' : '2'));
     warn.hidden = !over.length;
     warn.textContent = over.length
-      ? `Page ${over.join(' and ')} is too full to print on one sheet. Shorten or untick some items, remove pictures, or switch off "Managing breathlessness".`
+      ? `${over.length > 1 ? 'Pages 1 and 2 are' : `Page ${over[0]} is`} too full to print on one sheet. Shorten or untick some items, turn off inhaler pictures, or switch off "Breathing easier".`
       : '';
   }
   window.addEventListener('resize', () => { clearTimeout(fitPreview.t); fitPreview.t = setTimeout(fitPreview, 100); });
+  // Printing always uses true size; re-fit just before and restore the preview after.
+  window.addEventListener('beforeprint', () => { $('#sheet').style.zoom = 1; checkOverflow(); });
+  window.addEventListener('afterprint', fitPreview);
+
+  // Keep the sticky preview below the top bar, whose height changes as its buttons wrap.
+  function syncTopbarHeight() {
+    document.documentElement.style.setProperty('--topbar-h', $('.topbar').offsetHeight + 'px');
+  }
+  window.addEventListener('resize', syncTopbarHeight);
 
   // ============================================================
   function changed(path) {
@@ -741,5 +821,9 @@
   $('#about-email').href = 'mailto:' + AUTHOR.email;
   $('#about-reviewed').textContent = CONTENT_REVIEWED;
   renderAll();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fitPreview(); checkOverflow(); });
+  syncTopbarHeight();
+  if (document.fonts) {
+    if (document.fonts.ready) document.fonts.ready.then(() => { refit(); syncTopbarHeight(); });
+    document.fonts.addEventListener && document.fonts.addEventListener('loadingdone', refit);
+  }
 })();

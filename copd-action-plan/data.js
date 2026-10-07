@@ -5,7 +5,7 @@
  * clinic template file.
  */
 
-const APP_VERSION = '2.1.1'; // also update the ?v= tags in index.html
+const APP_VERSION = '2.2'; // also update the ?v= tags in index.html
 
 // ---- Author credit (printed in the footer and shown in the tool) ----
 const AUTHOR = {
@@ -21,7 +21,6 @@ const CLINIC_DEFAULTS = {
   phone: '',
   afterHours: 'call Health811 (811) or go to the nearest emergency department',
   emergency: '911',
-  provider: '',
 };
 
 // ---- Resources printed on page 2 (editable in the browser) ----
@@ -38,7 +37,7 @@ const RESOURCE_DEFAULTS = [
 // Each option: [value, label]. Groups render as <optgroup>.
 const MED_CATEGORIES = {
   daily: {
-    labelKey: 'medDaily', placeholder: 'e.g. 1 inhalation once a day',
+    label: 'Daily COPD medicines', placeholder: 'e.g. 1 inhalation once a day',
     groups: [
       ['Inhalers', [
         ['advair', 'Advair'], ['anoro', 'Anoro'], ['breo', 'Breo'], ['breztri', 'Breztri'],
@@ -54,7 +53,7 @@ const MED_CATEGORIES = {
     ],
   },
   reliever: {
-    labelKey: 'medReliever', placeholder: 'e.g. 1–2 puffs every 4–6 hours if needed',
+    label: 'Reliever', placeholder: 'e.g. 1–2 puffs every 4–6 hours if needed',
     groups: [['Relievers', [
       ['ventolin_mdi', 'Ventolin (puffer)'], ['ventolin_diskus', 'Ventolin (Diskus)'],
       ['airomir', 'Airomir (puffer)'], ['bricanyl', 'Bricanyl (Turbuhaler)'],
@@ -62,13 +61,13 @@ const MED_CATEGORIES = {
     ]]],
   },
   rescueSteroid: {
-    labelKey: 'medSteroid', placeholder: 'e.g. 40 mg once a day for 5 days',
+    label: 'Flare-up steroid', placeholder: 'e.g. 40 mg once a day for 5 days',
     groups: [['Steroids', [
       ['prednisone', 'Prednisone'], ['prednisolone', 'Prednisolone'], ['medrol', 'Methylprednisolone (Medrol)'],
     ]]],
   },
   rescueAbx: {
-    labelKey: 'medAntibiotic', placeholder: 'e.g. 875 mg twice a day for 5 days',
+    label: 'Flare-up antibiotic', placeholder: 'e.g. 875 mg twice a day for 5 days',
     groups: [['Antibiotics', [
       ['amoxicillin', 'Amoxicillin'], ['augmentin', 'Amoxicillin-clavulanate (Clavulin)'],
       ['doxycycline', 'Doxycycline'], ['azithromycin', 'Azithromycin (Zithromax)'],
@@ -93,7 +92,8 @@ const MED_IMAGES = {
 };
 
 // ---- Editable lists: default items reference translation keys ----
-// Items listed in OPTIONAL_ITEMS start unticked: clinicians can switch them on per patient.
+// Items listed in OPTIONAL_ITEMS start unticked; clinicians tick them for a patient as needed.
+// Ticks and wording edits apply to the current plan; "Save as clinic default" keeps them for new patients.
 const DEFAULT_LISTS = {
   greenSigns:   ['gSign1', 'gSign2', 'gSign3'],
   greenStayWell: ['gWell1', 'gWell2', 'gWell3', 'gWell4', 'gWell5', 'gWell6'],

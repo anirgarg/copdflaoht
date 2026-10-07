@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
   <title>COPD Action Plan Builder</title>
   <meta name="description" content="Build, customize and print a two-page COPD action plan with your patient.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,13 +18,16 @@
       <div class="brand">
         <h1>COPD Action Plan</h1>
         <span>Fill in the form with your patient. The preview shows exactly what prints.</span>
-        <span class="byline">Created by <span id="topbar-author"></span></span>
+        <span class="byline">Created by <span id="topbar-author"></span> · <a id="topbar-email" href="#"></a></span>
       </div>
       <div class="topbar-actions">
         <label class="lang">
           <span>Plan language</span>
           <select id="lang-select" data-bind="lang"></select>
         </label>
+        <button type="button" class="btn" id="top-template-save" title="Save clinic details, wording, resources and layout (no patient information)">Save template</button>
+        <label class="btn" for="template-file" title="Load a clinic template file">Load template</label>
+        <span class="divider" aria-hidden="true"></span>
         <button type="button" class="btn" id="new-patient">New patient</button>
         <button type="button" class="btn primary" id="print-btn">Print / Save PDF</button>
       </div>

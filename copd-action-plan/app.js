@@ -714,6 +714,9 @@
   $('#about-version').textContent = APP_VERSION;
   $('#about-author').textContent = AUTHOR.name;
   $('#topbar-author').textContent = AUTHOR.name;
+  $('#topbar-email').textContent = AUTHOR.email;
+  $('#topbar-email').href = 'mailto:' + AUTHOR.email;
+  $('#top-template-save').addEventListener('click', () => $('#template-save').click());
   $('#about-email').textContent = AUTHOR.email;
   $('#about-email').href = 'mailto:' + AUTHOR.email;
   $('#about-reviewed').textContent = CONTENT_REVIEWED;

@@ -554,8 +554,8 @@
         ifThen(t('step2a'), t('step2aDo'), steroid.length ? el('b', { dir: 'auto', text: medInline('rescueSteroid', steroid) }) : line()),
         ifThen(t('step2b'), t('step2bDo'), abx.length ? el('b', { dir: 'auto', text: medInline('rescueAbx', abx) }) : line(), t('step2bHint')),
         el('p', { class: 'if' }, el('b', null, t('step2c'), ':'), ' ',
-          state.texts.step2cDo.trim() ? auto(state.texts.step2cDo.trim()) : t('step2cDo'),
-          state.flare.followUp.trim() && [' ', t('followUp'), ' ', el('b', { dir: 'auto', text: state.flare.followUp.trim() }), '.']),
+          state.texts.step2cDo.trim() ? auto(state.texts.step2cDo.trim()) : t('step2cDo')),
+        state.flare.followUp.trim() && el('p', { class: 'if' }, t('followUp'), ' ', el('b', { dir: 'auto', text: state.flare.followUp.trim() })),
       ]),
       step('3', [
         el('p', { class: 'if' }, el('b', null, t('step3'), ':'), ' ', state.texts.step3Do.trim() ? auto(state.texts.step3Do.trim()) : t('step3Do')),
@@ -656,7 +656,7 @@
     sheet.style.setProperty('--page-w', paper.w);
     sheet.style.setProperty('--page-h', paper.h);
     $('#page-style').textContent = `@page { size: ${state.opts.paper === 'a4' ? 'A4' : 'letter'} portrait; margin: 0; }`;
-    sheet.replaceChildren(renderPage1(), state.opts.page2 ? renderPage2() : null);
+    sheet.replaceChildren(...[renderPage1(), state.opts.page2 && renderPage2()].filter(Boolean));
     fitPreview();
     checkOverflow();
   }
@@ -674,13 +674,21 @@
   }
 
   // Shrink a crowded page's text in small steps (down to a readable minimum) so it fits on one sheet.
-  const BASE_PT = 9.6, MIN_PT = 8.0;
+  const BASE_PT = 9.6, MIN_PT = 8.0, FLOOR_PT = 7.6;
   function autoFit() {
+    const over = page => page.scrollHeight > page.clientHeight + 1;
     document.querySelectorAll('#sheet .page').forEach(page => {
       let pt = BASE_PT;
       page.style.fontSize = '';
-      while (page.scrollHeight > page.clientHeight + 1 && pt > MIN_PT) {
+      page.style.lineHeight = '';
+      // 1) shrink text a little at a time; 2) then tighten line spacing; 3) then a final small step
+      while (over(page) && pt > MIN_PT) {
         pt = Math.round((pt - 0.2) * 10) / 10;
+        page.style.fontSize = pt + 'pt';
+      }
+      if (over(page)) page.style.lineHeight = '1.2';
+      while (over(page) && pt > FLOOR_PT) {
+        pt = Math.round((pt - 0.1) * 10) / 10;
         page.style.fontSize = pt + 'pt';
       }
     });
@@ -716,7 +724,12 @@
   $('#topbar-author').textContent = AUTHOR.name;
   $('#topbar-email').textContent = AUTHOR.email;
   $('#topbar-email').href = 'mailto:' + AUTHOR.email;
+  // Buttons that open a hidden file picker (keyboard-accessible, unlike a styled <label>)
+  document.querySelectorAll('[data-file]').forEach(btn => {
+    btn.addEventListener('click', () => document.getElementById(btn.dataset.file).click());
+  });
   $('#top-template-save').addEventListener('click', () => $('#template-save').click());
+  $('#top-template-reset').addEventListener('click', () => $('#reset-template').click());
   $('#about-email').textContent = AUTHOR.email;
   $('#about-email').href = 'mailto:' + AUTHOR.email;
   $('#about-reviewed').textContent = CONTENT_REVIEWED;

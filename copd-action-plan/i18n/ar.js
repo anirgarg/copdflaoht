@@ -80,7 +80,7 @@ TRANSLATIONS.ar = {
   firstResponderLabel: 'ملاحظات لفرق الاستجابة الأولى',
 
   careTitle: 'رعايتي للانسداد الرئوي',
-  careFlu: 'لقاح الإنفلونزا', careCovid: 'لقاح COVID-19', carePneumo: 'لقاح الالتهاب الرئوي', careRsv: 'لقاح الفيروس المخلوي التنفسي (RSV)',
+  careFlu: 'لقاح الإنفلونزا', careCovid: 'لقاح COVID-19', carePneumo: 'لقاح الالتهاب الرئوي', careRsv: 'لقاح RSV',
   careRehab: 'إعادة التأهيل الرئوي', careTechnique: 'تم فحص طريقة استخدام البخاخ',
   smokingLabel: 'التدخين', smokeNever: 'لم أدخن أبدًا', smokeFormer: 'أقلعت', smokeCurrent: 'أدخن: عُرض عليّ دعم للإقلاع',
 

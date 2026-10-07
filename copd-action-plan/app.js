@@ -439,14 +439,12 @@
   };
   const face = mood => el('span', {
     class: 'face', 'aria-hidden': 'true',
-    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><circle cx="9" cy="9.8" r=".6" fill="currentColor"/><circle cx="15" cy="9.8" r=".6" fill="currentColor"/>${FACE[mood]}</svg>`,
+    html: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><circle cx="9" cy="9.8" r=".7" fill="currentColor"/><circle cx="15" cy="9.8" r=".7" fill="currentColor"/>${FACE[mood]}</svg>`,
   });
 
-  const fill = (content, cls) => {
-    const has = content != null && content !== '' && !(Array.isArray(content) && !content.length);
-    return el('div', { class: 'ans' + (has ? '' : ' blank') + (cls ? ' ' + cls : '') }, has ? content : null);
-  };
   const auto = text => el('span', { dir: 'auto', text });
+  const line = cls => el('span', { class: 'line' + (cls ? ' ' + cls : '') });
+  const value = (v, cls) => (v ? el('span', { class: 'val', dir: 'auto', text: v }) : line(cls));
   const choice = (label, on) => el('span', { class: 'choice' + (on ? ' on' : '') }, el('span', { class: 'radio', 'aria-hidden': 'true' }), label);
   const tick = on => el('span', { class: 'tick' + (on ? ' on' : ''), 'aria-hidden': 'true' });
 
@@ -459,7 +457,7 @@
 
   function medLines(cat) {
     const rows = filledMeds(cat);
-    if (!rows.length) return null;
+    if (!rows.length) return line('wide');
     const anyImg = state.opts.images && rows.some(r => MED_IMAGES[r.med]);
     return el('ul', { class: 'meds' }, rows.map(r => {
       const img = anyImg && MED_IMAGES[r.med];
@@ -471,50 +469,63 @@
     }));
   }
 
-  const row = (cond, ans, cls) => el('div', { class: 'row' + (cls ? ' ' + cls : '') }, el('div', { class: 'cond' }, cond), ans);
-  const doLine = (lead, content) => el('span', { class: 'do' }, el('span', { class: 'arrow', 'aria-hidden': 'true', text: '›››' }), el('span', null, lead, content));
+  // One labelled action inside the "What I do" column
+  const act = (label, body, cls) => el('div', { class: 'act' + (cls ? ' ' + cls : '') },
+    label && el('div', { class: 'act-label' }, label), el('div', { class: 'act-body' }, body));
 
-  function zone(cls, mood, title, sub, signsKey, body, extra) {
+  function zone(cls, mood, signsKey, actions, extra) {
     return el('section', { class: 'zone ' + cls },
-      el('div', { class: 'z-left' },
-        el('h3', { class: 'tab' }, el('span', { text: title }), face(mood)),
-        el('div', { class: 'signs' }, el('h4', { text: sub }), bullets(signsKey), extra)),
-      el('div', { class: 'z-right' },
-        el('div', { class: 'tab', text: t('myPlan') }),
-        el('div', { class: 'rows' }, body)));
+      el('div', { class: 'z-label' },
+        el('span', { class: 'z-name', text: t(cls + 'Zone') }),
+        face(mood),
+        el('span', { class: 'z-feel', text: t(cls + 'Title') })),
+      el('div', { class: 'z-signs' }, bullets(signsKey), extra),
+      el('div', { class: 'z-actions' }, actions));
+  }
+
+  function brandBar(small) {
+    const clinicName = state.clinic.name.trim() || CLINIC_DEFAULTS.name;
+    const program = state.clinic.program.trim();
+    return el('div', { class: 'brandbar' + (small ? ' small' : '') },
+      state.clinic.logo && el('img', { class: 'logo', src: state.clinic.logo, alt: '' }),
+      el('div', { class: 'brand-text' },
+        el('span', { class: 'brand-clinic', dir: 'auto', text: clinicName }),
+        program && el('span', { class: 'brand-program', dir: 'auto', text: program })),
+      state.clinic.phone.trim() && el('span', { class: 'brand-phone', dir: 'auto', text: state.clinic.phone.trim() }));
   }
 
   function renderPage1() {
-    const clinicName = state.clinic.name.trim() || CLINIC_DEFAULTS.name;
-    const prepared = [state.clinic.provider.trim(), clinicName, state.clinic.phone.trim()].filter(Boolean).join(' · ');
     const fmt = iso => (iso ? formatDate(iso) : '');
+    const field = (label, v, cls) => el('div', { class: 'pf' + (cls ? ' ' + cls : '') }, el('span', { class: 'pf-label', text: t(label) }), value(v));
 
     const head = el('header', { class: 'p-head' },
-      el('h2', { class: 'p-title' }, el('span', { text: t('title1') }), el('span', { text: t('title2') })),
-      el('dl', { class: 'p-fields' },
-        el('dt', { text: t('nameLabel') }), fill(state.patient.name.trim() && auto(state.patient.name.trim()), 'big'),
-        el('dt', { text: t('preparedLabel') }), fill(prepared && auto(prepared)),
-        el('dt', { text: t('dateLabel') }),
-        el('div', { class: 'date-pair' }, fill(fmt(state.patient.date)),
-          el('span', { class: 'dt', text: t('reviewLabel') }), fill(fmt(state.patient.review)))),
-      el('div', { class: 'p-side' },
-        state.clinic.logo && el('img', { class: 'logo', src: state.clinic.logo, alt: clinicName }),
-        el('p', { class: 'review-note', text: t('reviewNote') })));
+      brandBar(),
+      el('div', { class: 'title-row' },
+        el('h2', { class: 'p-title', text: t('title') }),
+        el('p', { class: 'review-note', text: t('reviewNote') })),
+      el('div', { class: 'p-fields' },
+        field('nameLabel', state.patient.name.trim(), 'wide'),
+        field('dateLabel', fmt(state.patient.date)),
+        field('reviewLabel', fmt(state.patient.review)),
+        field('preparedLabel', state.clinic.provider.trim(), 'full')));
+
+    const cols = el('div', { class: 'col-heads', 'aria-hidden': 'true' },
+      el('span', { text: t('colZone') }), el('span', { text: t('colNotice') }), el('span', { text: t('colDo') }));
 
     // Green
     const o = state.oxygen;
     const oxyDetail = [o.rest && `${t('oxyRest')}: ${o.rest}`, o.activity && `${t('oxyActivity')}: ${o.activity}`,
       o.sleep && `${t('oxySleep')}: ${o.sleep}`, o.hours && `${t('oxyHours')}: ${o.hours}`].filter(Boolean).join(' · ');
     const b = state.baseline;
-    const baseItem = (label, v) => [el('dt', { text: label + ':' }), el('dd', { class: v ? '' : 'blank', dir: 'auto', text: v })];
     const baseline = el('dl', { class: 'baseline' },
-      baseItem(t('baselinePhlegm'), b.phlegm.trim()), baseItem(t('baselineSpo2'), b.spo2.trim()));
-    const green = zone('green', 'well', t('greenTitle'), t('greenSub'), 'greenSigns', [
-      row(t('medDaily'), fill(medLines('daily'))),
-      row(t('medReliever'), fill(medLines('reliever'))),
-      row(el('span', { class: 'oxy-q' }, t('oxygenLabel'), choice(t('no'), o.use === 'no'), choice(t('yes'), o.use === 'yes')),
-        fill(o.use === 'no' ? null : (oxyDetail && auto(oxyDetail)), o.use === 'no' ? 'none' : '')),
-      row(t('stayWellLabel'), el('div', { class: 'ans list' }, bullets('greenStayWell', null, 'cols'))),
+      el('dt', { text: t('baselinePhlegm') }), el('dd', null, value(b.phlegm.trim())),
+      el('dt', { text: t('baselineSpo2') }), el('dd', null, value(b.spo2.trim(), 'short')));
+    const green = zone('green', 'well', 'greenSigns', [
+      act(t('medDaily'), medLines('daily')),
+      act(t('medReliever'), medLines('reliever')),
+      act(null, [el('span', { class: 'act-label inline' }, t('oxygenLabel')), choice(t('no'), o.use === 'no'), choice(t('yes'), o.use === 'yes'),
+        o.use !== 'no' && (oxyDetail ? el('span', { class: 'oxy', dir: 'auto', text: oxyDetail }) : line())], 'oxy-row'),
+      act(t('stayWellLabel'), bullets('greenStayWell', null, 'cols')),
     ], baseline);
 
     // Yellow
@@ -522,123 +533,118 @@
     const abx = filledMeds('rescueAbx');
     const hasRescue = steroid.length + abx.length > 0;
     const anyMeds = Object.keys(state.meds).some(k => filledMeds(k).length);
-    const rescueKnown = hasRescue || anyMeds; // once meds are entered, "no rescue pack" is a real answer
+    const rescueKnown = hasRescue || anyMeds; // once meds are entered, "no prescription" is a real answer
     const relieverText = state.flare.reliever.trim() || filledMeds('reliever').map(r => [medName('reliever', r), r.instr.trim()].filter(Boolean).join(' — ')).join('; ');
     const medInline = (cat, rows) => rows.map(r => [medName(cat, r), r.instr.trim()].filter(Boolean).join(' — ')).join('; ');
     const phoneBits = [state.clinic.phone.trim() && `${t('clinicPhoneLabel')}: ${state.clinic.phone.trim()}`,
       state.clinic.afterHours.trim() && `${t('afterHoursLabel')}: ${state.clinic.afterHours.trim()}`].filter(Boolean);
 
-    const step = (n, cls, rows) => el('div', { class: 'step ' + cls },
-      el('div', { class: 'num', text: n }), el('div', { class: 'step-rows' }, rows));
+    const step = (n, body) => el('div', { class: 'step' }, el('span', { class: 'num', text: n }), el('div', { class: 'step-body' }, body));
+    const ifThen = (cond, doText, v, hint) => el('p', { class: 'if' },
+      el('b', null, cond, ':'), ' ', hint && el('span', { class: 'hint-inline', text: `(${hint}) ` }), doText, v !== undefined && [': ', v]);
 
-    const yellowRows = [
-      step('1', 's1', [
-        row(t('step1a'), fill(state.flare.technique.trim() && auto(state.flare.technique.trim()))),
-        row(t('step1b'), fill(relieverText && auto(relieverText))),
+    const yellow = zone('yellow', 'unwell', 'yellowSigns', [
+      step('1', [
+        el('p', { class: 'if' }, t('step1a'), state.flare.technique.trim() && [': ', auto(state.flare.technique.trim())]),
+        el('p', { class: 'if' }, t('step1b'), ': ', relieverText ? el('b', { dir: 'auto', text: relieverText }) : line()),
       ]),
-      el('div', { class: 'rescue-q' }, el('span', null, t('rescueQ')),
+      el('p', { class: 'rescue-q' }, el('b', { text: t('rescueQ') }),
         choice(t('rescueYes'), rescueKnown && hasRescue), choice(t('rescueNo'), rescueKnown && !hasRescue)),
-      (!rescueKnown || hasRescue) && step('2', 's2', [
-        row(t('step2a'), el('div', { class: 'ans do-ans' }, doLine(t('step2aDo') + ': ', steroid.length ? el('b', { dir: 'auto', text: medInline('rescueSteroid', steroid) }) : el('span', { class: 'blank-inline' })))),
-        row([t('step2b'), el('small', { text: t('step2bHint') })],
-          el('div', { class: 'ans do-ans' }, doLine(t('step2bDo') + ': ', abx.length ? el('b', { dir: 'auto', text: medInline('rescueAbx', abx) }) : el('span', { class: 'blank-inline' })))),
-        row(t('step2c'), el('div', { class: 'ans do-ans' },
-          doLine(state.texts.step2cDo.trim() ? auto(state.texts.step2cDo.trim()) : t('step2cDo')),
-          state.flare.followUp.trim() && doLine(t('followUp') + ' ', el('b', { dir: 'auto', text: state.flare.followUp.trim() })))),
+      (!rescueKnown || hasRescue) && step('2', [
+        ifThen(t('step2a'), t('step2aDo'), steroid.length ? el('b', { dir: 'auto', text: medInline('rescueSteroid', steroid) }) : line()),
+        ifThen(t('step2b'), t('step2bDo'), abx.length ? el('b', { dir: 'auto', text: medInline('rescueAbx', abx) }) : line(), t('step2bHint')),
+        el('p', { class: 'if' }, el('b', null, t('step2c'), ':'), ' ',
+          state.texts.step2cDo.trim() ? auto(state.texts.step2cDo.trim()) : t('step2cDo'),
+          state.flare.followUp.trim() && [' ', t('followUp'), ' ', el('b', { dir: 'auto', text: state.flare.followUp.trim() }), '.']),
       ]),
-      step('3', 's3', [
-        row(t('step3'), el('div', { class: 'ans do-ans' },
-          doLine(state.texts.step3Do.trim() ? auto(state.texts.step3Do.trim()) : t('step3Do')),
-          phoneBits.length && el('span', { class: 'phones', dir: 'auto', text: phoneBits.join(' · ') }))),
+      step('3', [
+        el('p', { class: 'if' }, el('b', null, t('step3'), ':'), ' ', state.texts.step3Do.trim() ? auto(state.texts.step3Do.trim()) : t('step3Do')),
+        phoneBits.length && el('p', { class: 'phones', dir: 'auto', text: phoneBits.join(' · ') }),
       ]),
-    ];
-    const yellow = zone('yellow', 'unwell', t('yellowTitle'), t('yellowSub'), 'yellowSigns', yellowRows);
-
-    // Red
-    const red = zone('red', 'very', t('redTitle'), t('redSub'), 'redSigns', [
-      row(el('b', { class: 'shout', text: t('callAmbulance') }), el('div', { class: 'ans shout', text: t('dialNow') }), 'call'),
-      row(el('b', { text: t('whileWaiting') }), el('div', { class: 'ans list' },
-        bullets('redWhileWaiting', i => (i.key === 'rWait3' && relieverText) ? el('span', { dir: 'auto', text: ': ' + relieverText }) : null))),
-      row(t('notesLabel'), fill(state.redNotes.trim() && el('span', { class: 'pre', dir: 'auto', text: state.redNotes.trim() }))),
     ]);
 
-    return el('section', { class: 'page p1', 'aria-label': t('page') + ' 1' }, head, green, yellow, red);
+    // Red
+    const red = zone('red', 'very', 'redSigns', [
+      el('div', { class: 'call' }, el('span', { text: t('callAmbulance') }), el('strong', { text: t('dialNow') })),
+      act(t('whileWaiting'), bullets('redWhileWaiting', i => (i.key === 'rWait3' && relieverText) ? el('span', { dir: 'auto', text: ': ' + relieverText }) : null)),
+      act(t('notesLabel'), state.redNotes.trim() ? el('span', { class: 'pre', dir: 'auto', text: state.redNotes.trim() }) : line('wide')),
+    ]);
+
+    return el('section', { class: 'page p1', 'aria-label': t('page') + ' 1' }, head, cols, green, yellow, red, pageFoot(1));
+  }
+
+  function pageFoot(n) {
+    return el('footer', { class: 'page-foot' },
+      el('span', { text: `${t('title')} · ${t('page')} ${n}` }),
+      el('span', { class: 'credit', text: `${t('creditLabel')} ${AUTHOR.name} · v${APP_VERSION}` }));
   }
 
   function renderPage2() {
     const a = state.amb;
     const contacts = a.contacts.filter(c => c.name.trim() || c.phone.trim());
-    const ambRows = [
-      row(t('addressLabel'), fill(a.address.trim() && auto(a.address.trim()))),
-      row(t('contactsLabel'), contacts.length
-        ? el('div', { class: 'ans' }, el('ul', { class: 'contacts' }, contacts.map(c =>
-            el('li', { dir: 'auto' }, el('b', { text: c.name.trim() }), c.rel.trim() && ` (${c.rel.trim()})`, c.phone.trim() && ` · ${c.phone.trim()}`))))
-        : el('div', { class: 'ans split' },
-            el('span', { class: 'lbl', text: t('contactName') }), el('span', { class: 'blank-inline' }),
-            el('span', { class: 'lbl', text: t('contactPhone') }), el('span', { class: 'blank-inline' }))),
-      row(t('allergiesLabel'), fill(a.allergies.trim() && auto(a.allergies.trim()))),
-      row(t('conditionsLabel'), fill(a.conditions.trim() && auto(a.conditions.trim()))),
-      row(t('oxygenTargetLabel'), el('div', { class: 'ans inline' },
-        el('span', null, t('spo2Target') + ': ', a.spo2.trim() ? el('b', { dir: 'auto', text: a.spo2.trim() }) : el('span', { class: 'blank-inline short' })),
-        el('span', null, tick(a.co2), ' ', t('co2Retainer')),
-        el('span', null, tick(a.alertCard), ' ', t('alertCard')))),
-      row(t('acpLabel'), el('div', { class: 'ans inline' },
-        choice(t('yes'), a.acp === 'yes'), choice(t('no'), a.acp === 'no'),
-        el('span', null, t('sdmLabel') + ': ', a.sdm.trim() ? el('b', { dir: 'auto', text: a.sdm.trim() }) : el('span', { class: 'blank-inline' })))),
-      row(t('firstResponderLabel'), fill(a.notes.trim() && el('span', { class: 'pre', dir: 'auto', text: a.notes.trim() }))),
-    ];
+    const kv = (label, body, cls) => el('div', { class: 'kv' + (cls ? ' ' + cls : '') }, el('dt', { text: t(label) }), el('dd', null, body));
 
-    const amb = el('section', { class: 'amb' },
-      el('h2', { class: 'p2-title red-text', text: t('ambulanceTitle') }),
-      el('div', { class: 'amb-box' }, el('div', { class: 'tab', text: t('ambulanceSub') }), el('div', { class: 'rows' }, ambRows)));
+    const amb = el('section', { class: 'card amb' },
+      el('h2', { class: 'card-head' }, el('span', { text: t('ambulanceTitle') }), el('small', { text: t('ambulanceSub') })),
+      el('dl', { class: 'kv-grid' },
+        kv('nameLabel', value(state.patient.name.trim())),
+        kv('addressLabel', value(a.address.trim())),
+        kv('contactsLabel', contacts.length
+          ? el('ul', { class: 'contacts' }, contacts.map(c =>
+              el('li', { dir: 'auto' }, el('b', { text: c.name.trim() }), c.rel.trim() && ` (${c.rel.trim()})`, c.phone.trim() && ` · ${c.phone.trim()}`)))
+          : line('wide'), 'span2'),
+        kv('allergiesLabel', value(a.allergies.trim())),
+        kv('conditionsLabel', value(a.conditions.trim())),
+        kv('oxygenTargetLabel', el('span', { class: 'inline' },
+          el('span', null, t('spo2Target') + ': ', value(a.spo2.trim(), 'short')),
+          el('span', null, tick(a.co2), ' ', t('co2Retainer')),
+          el('span', null, tick(a.alertCard), ' ', t('alertCard'))), 'span2'),
+        kv('acpLabel', el('span', { class: 'inline' }, choice(t('yes'), a.acp === 'yes'), choice(t('no'), a.acp === 'no'))),
+        kv('sdmLabel', value(a.sdm.trim())),
+        kv('firstResponderLabel', a.notes.trim() ? el('span', { class: 'pre', dir: 'auto', text: a.notes.trim() }) : line('wide'), 'span2')));
 
     const c = state.care;
     const smoke = [['never', 'smokeNever'], ['former', 'smokeFormer'], ['current', 'smokeCurrent']];
-    const care = state.opts.care && el('section', { class: 'care' },
-      el('h4', { text: t('careTitle') }),
+    const care = state.opts.care && el('section', { class: 'card care' },
+      el('h2', { class: 'card-head', text: t('careTitle') }),
       el('dl', { class: 'care-grid' },
         CARE_ITEMS.map(([k]) => {
-          const field = k.replace('care', '').replace(/^./, ch => ch.toLowerCase());
-          const v = (c[field] || '').trim();
-          return el('div', { class: 'care-item' }, el('dt', { text: t(k) }), el('dd', { class: v ? '' : 'blank', dir: 'auto', text: v }));
+          const f = k.replace('care', '').replace(/^./, ch => ch.toLowerCase());
+          return el('div', { class: 'care-item' }, el('dt', { text: t(k) }), el('dd', null, value((c[f] || '').trim())));
         }),
         el('div', { class: 'care-item smoking' }, el('dt', { text: t('smokingLabel') }),
           el('dd', null, smoke.map(([v, k]) => choice(t(k), c.smoking === v))))));
 
-    const steps = [['bStop', 'bStopDo'], ['bThink', 'bThinkDo'], ['bPosition', 'bPositionDo'], ['bBreathe', 'bBreatheDo'], ['bAir', 'bAirDo']];
-    const breathing = state.opts.breathing && el('section', { class: 'breath' },
-      el('div', { class: 'breath-left' },
-        el('h2', { class: 'p2-title green-text', text: t('breathTitle') }),
-        el('p', { class: 'intro', text: t('breathIntro') }),
-        el('h4', { text: t('activitiesLabel') }),
-        el('div', { class: 'activities' }, bullets('activities')),
-        el('div', { class: 'after10' },
-          el('p', null, el('b', { text: t('after10') })),
-          el('p', { class: 'yn' }, el('span', { class: 'pill yes', text: t('yes') }), t('after10Yes')),
-          el('p', { class: 'yn' }, el('span', { class: 'pill no', text: t('no') }), t('after10No')))),
-      el('div', { class: 'breath-right' },
-        el('h4', { class: 'green-text', text: t('whenBreathless') }),
-        el('ol', { class: 'bsteps' }, steps.map(([k, d]) => el('li', null, el('b', { text: t(k) }), el('span', { text: t(d) }))))));
+    const tip = (key, body) => el('div', { class: 'tip' }, el('h3', { text: t(key) }), body);
+    const breathing = state.opts.breathing && el('section', { class: 'card breath' },
+      el('h2', { class: 'card-head', text: t('breathTitle') }),
+      el('p', { class: 'intro', text: t('breathIntro') }),
+      el('div', { class: 'tips' },
+        tip('tipPursed', el('p', { text: t('tipPursedDo') })),
+        tip('tipPosition', el('p', { text: t('tipPositionDo') })),
+        tip('tipPace', [el('p', { text: t('tipPaceDo') }), el('p', { class: 'mini-head', text: t('activitiesLabel') }), bullets('activities', null, 'cols')]),
+        tip('tipCalm', el('p', { text: t('tipCalmDo') }))),
+      el('p', { class: 'settle', text: t('settle') }));
 
     const resources = state.resources.filter(r => r.label.trim() || r.detail.trim());
-    const footer = el('footer', { class: 'p2-foot' },
-      resources.length && el('div', { class: 'resources' },
-        el('h4', { text: t('resourcesTitle') }),
-        el('ul', null, resources.map(r => el('li', null, el('b', { dir: 'auto', text: r.label.trim() }), r.detail.trim() && el('span', { dir: 'auto', text: r.detail.trim() }))))),
-      el('p', { class: 'disclaimer', text: t('disclaimer') }),
-      el('p', { class: 'meta', text: `${state.clinic.name.trim() || CLINIC_DEFAULTS.name} · COPD Action Plan v${APP_VERSION} (content reviewed ${CONTENT_REVIEWED}) · Layout informed by Lung Foundation Australia's My COPD Action Plan; not endorsed by Lung Foundation Australia.` }));
+    const res = resources.length && el('section', { class: 'resources' },
+      el('h3', { text: t('resourcesTitle') }),
+      el('ul', null, resources.map(r => el('li', null, el('b', { dir: 'auto', text: r.label.trim() }), r.detail.trim() && el('span', { dir: 'auto', text: r.detail.trim() })))));
 
-    return el('section', { class: 'page p2', 'aria-label': t('page') + ' 2' }, amb, care, breathing, footer);
+    return el('section', { class: 'page p2', 'aria-label': t('page') + ' 2' },
+      brandBar(true), amb, care, breathing, res,
+      el('p', { class: 'disclaimer', text: t('disclaimer') }),
+      pageFoot(2));
   }
 
   function formatDate(iso) {
     const [y, m, d] = iso.split('-').map(Number);
     if (!y || !m || !d) return iso;
-    const locale = { yue: 'zh-HK', zh: 'zh-CN', en: 'en-CA' }[state.lang] || state.lang;
+    const locale = { yue: 'zh-HK', zh: 'zh-CN', en: 'en-CA', fr: 'fr-CA' }[state.lang] || state.lang;
     try { return new Date(y, m - 1, d).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' }); } catch (e) { return iso; }
   }
 
-  const PAPER = { letter: { w: '11in', h: '8.5in' }, a4: { w: '297mm', h: '210mm' } };
+  const PAPER = { letter: { w: '8.5in', h: '11in' }, a4: { w: '210mm', h: '297mm' } };
 
   function renderSheet() {
     const sheet = $('#sheet');
@@ -649,7 +655,7 @@
     const paper = PAPER[state.opts.paper];
     sheet.style.setProperty('--page-w', paper.w);
     sheet.style.setProperty('--page-h', paper.h);
-    $('#page-style').textContent = `@page { size: ${state.opts.paper === 'a4' ? 'A4' : 'letter'} landscape; margin: 0; }`;
+    $('#page-style').textContent = `@page { size: ${state.opts.paper === 'a4' ? 'A4' : 'letter'} portrait; margin: 0; }`;
     sheet.replaceChildren(renderPage1(), state.opts.page2 ? renderPage2() : null);
     fitPreview();
     checkOverflow();
@@ -668,7 +674,7 @@
   }
 
   // Shrink a crowded page's text in small steps (down to a readable minimum) so it fits on one sheet.
-  const BASE_PT = 9.1, MIN_PT = 7.9;
+  const BASE_PT = 9.6, MIN_PT = 8.0;
   function autoFit() {
     document.querySelectorAll('#sheet .page').forEach(page => {
       let pt = BASE_PT;
@@ -706,6 +712,10 @@
   }
 
   $('#about-version').textContent = APP_VERSION;
+  $('#about-author').textContent = AUTHOR.name;
+  $('#topbar-author').textContent = AUTHOR.name;
+  $('#about-email').textContent = AUTHOR.email;
+  $('#about-email').href = 'mailto:' + AUTHOR.email;
   $('#about-reviewed').textContent = CONTENT_REVIEWED;
   renderAll();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { fitPreview(); checkOverflow(); });

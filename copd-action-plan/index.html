@@ -17,6 +17,7 @@
       <div class="brand">
         <h1>COPD Action Plan</h1>
         <span>Fill in the form with your patient. The preview shows exactly what prints.</span>
+        <span class="byline">Created by <span id="topbar-author"></span></span>
       </div>
       <div class="topbar-actions">
         <label class="lang">
@@ -80,19 +81,19 @@
       </details>
 
       <details class="panel zone-panel yellow" open>
-        <summary><span>Yellow zone · Flare-up</span></summary>
+        <summary><span>Yellow zone · I am having a flare-up</span></summary>
         <h3 class="sub">Step 1 · More reliever</h3>
         <div class="fields">
           <label>How to use the reliever during a flare-up <input type="text" id="flare-reliever" data-bind="flare.reliever" placeholder="Leave blank to repeat the reliever above, e.g. Ventolin 2–4 puffs every 4 hours"></label>
           <label>Breathing techniques / recovery plan (optional) <input type="text" id="flare-technique" data-bind="flare.technique" placeholder="e.g. Pursed-lip breathing, pace activities"></label>
         </div>
-        <h3 class="sub">Step 2 · Rescue pack</h3>
-        <p class="hint tight">Leave both empty if the patient has no rescue pack; the plan then skips to step 3.</p>
+        <h3 class="sub">Step 2 · Flare-up prescription</h3>
+        <p class="hint tight">Leave both empty if the patient has no flare-up prescription; the plan then skips to step 3.</p>
         <p class="mini-label">Steroid</p>
         <div data-meds="rescueSteroid"></div>
         <p class="mini-label">Antibiotic</p>
         <div data-meds="rescueAbx"></div>
-        <label class="stack">After starting the rescue pack, I will… <small>(clinic wording)</small>
+        <label class="stack">After starting the flare-up prescription, I will… <small>(clinic wording)</small>
           <input type="text" id="text-step2c" data-bind="texts.step2cDo" placeholder="call my clinic the same or next working day to let them know"></label>
         <label class="stack">The clinic will call the patient within… <small>(optional)</small>
           <input type="text" id="flare-followup" data-bind="flare.followUp" placeholder="e.g. 2 days"></label>
@@ -109,7 +110,7 @@
       </details>
 
       <details class="panel zone-panel red">
-        <summary><span>Red zone · Emergency</span></summary>
+        <summary><span>Red zone · I need help now</span></summary>
         <label class="stack">Notes (optional) <textarea id="red-notes" data-bind="redNotes" rows="2" placeholder="e.g. Use reliever 4–6 puffs, repeat every 20 minutes until help arrives"></textarea></label>
         <details class="more">
           <summary>Wording: emergency signs and "while I wait"</summary>
@@ -171,9 +172,9 @@
 
       <details class="panel">
         <summary><span>Page 2 · Breathlessness &amp; resources</span></summary>
-        <label class="check"><input type="checkbox" id="opt-breathing" data-bind="opts.breathing"> Include "Managing breathlessness"</label>
+        <label class="check"><input type="checkbox" id="opt-breathing" data-bind="opts.breathing"> Include "Breathing easier"</label>
         <details class="more">
-          <summary>Wording: activities that cause breathlessness</summary>
+          <summary>Wording: "I plan extra time for" activities</summary>
           <div data-list="activities" data-add="Add activity"></div>
           <button type="button" class="link-btn" data-reset-list="activities">Restore default wording</button>
         </details>
@@ -187,6 +188,7 @@
         <p class="hint tight">Set once per clinic. Remembered in this browser and included in the clinic template file.</p>
         <div class="fields">
           <label>Clinic name <input type="text" id="clinic-name" data-bind="clinic.name"></label>
+          <label>Program (shown under the clinic name) <input type="text" id="clinic-program" data-bind="clinic.program" placeholder="e.g. Regional Lung Health Program"></label>
           <div class="fields two">
             <label>Clinic phone <input type="tel" id="clinic-phone" data-bind="clinic.phone" placeholder="613-555-0123"></label>
             <label>Emergency number <input type="text" id="clinic-emergency" data-bind="clinic.emergency" placeholder="911"></label>
@@ -245,8 +247,9 @@
       <details class="panel">
         <summary><span>About this tool</span></summary>
         <div class="about">
-          <p>A clinician fills in this plan with the patient. It is meant to go with self-management education and follow-up, not to replace them.</p>
-          <p>Default wording follows the Canadian Thoracic Society and GOLD 2026 guidance, with plain language aimed at about a grade 6 reading level. The layout is informed by Lung Foundation Australia's <i>My COPD Action Plan</i> (2026). It is not endorsed by Lung Foundation Australia.</p>
+          <p><b>Created by <span id="about-author"></span></b><br><a id="about-email" href="#"></a></p>
+          <p>A clinician fills in this plan with the patient. It works best alongside self-management education and follow-up, not instead of them.</p>
+          <p>Default wording follows Canadian Thoracic Society and GOLD 2026 guidance, in plain language aimed at about a grade 6 reading level. Breathing skills follow those taught in Canadian pulmonary rehabilitation. The yellow-zone step approach was informed by Lung Foundation Australia's <i>My COPD Action Plan</i>; this tool is not endorsed by Lung Foundation Australia.</p>
           <p>English is the source text. Other languages are draft translations: have a qualified medical translator check them before you give them to patients.</p>
           <p class="mini">Version <span id="about-version"></span> · content reviewed <span id="about-reviewed"></span></p>
         </div>

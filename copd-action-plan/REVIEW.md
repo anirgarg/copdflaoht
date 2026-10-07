@@ -1,4 +1,6 @@
-# Content review: version 2.0 (October 2026)
+# Content review: version 2.1 (October 2026)
+
+Prepared for Dr Anirudha (Ani) Garg, MSc MD FRACGP CCFP · Kingston Community Health Centre
 
 How this plan compares with other published COPD action plans and the evidence, what was changed as a result,
 and what still needs a human to check before the plan is offered to other providers.
@@ -18,7 +20,7 @@ and what still needs a human to check before the plan is offered to other provid
 | Ambulance information | — | — | address, contact, notes | — | emergency contact | address, contacts (unlimited), allergies, conditions, **target SpO₂, CO₂ retention, oxygen alert card**, goals of care, **substitute decision-maker** |
 | Oxygen | — | — | yes/no | — | **flow at rest / exertion / sleep** | rest / activity / sleep / hours |
 | Vaccines, rehab, smoking | 2026 Lung Assoc. version adds vaccines and rehab [verify] | — | — | **vaccine dates**, rehab | — | **My COPD care** checklist |
-| Breathlessness self-help | — | — | page 2 | — | — | page 2 (own wording) |
+| Breathlessness self-help | — | breathing techniques, positions | page 2 | — | — | page 2: pursed-lip breathing, positions, pace/plan/prioritize, stay calm |
 | Accessibility | — | French version | **greyscale** version | **Easy Read** version | — | 7 languages, greyscale mode, words and faces on each zone (not colour alone) |
 
 ## 2. Evidence behind the main choices
@@ -59,10 +61,7 @@ and what still needs a human to check before the plan is offered to other provid
 - **Privacy (PHIPA).** The form runs entirely in the browser. Patient data is not sent, stored or logged by the tool, and
   only a de-identified clinic template is kept in localStorage. *Confirm with your privacy officer.* This is a design
   choice, not legal advice.
-- **Attribution.** Lung Foundation Australia's plan is © LFA, and no public terms permitting adaptation were found.
-  This plan reproduces no LFA text, artwork or logo. Its own wording was written fresh, and the printed footer reads "Layout
-  informed by … not endorsed by Lung Foundation Australia." **Consider emailing LFA to ask for their blessing**
-  (lungfoundation.com.au/contact-us).
+- **Attribution.** Version 2.1 uses its own Canadian design. The page is portrait with a KCHC header band and CTS-style *Zone | What I notice | What I do* columns, and it uses "flare-up prescription" wording, write-in lines and a "Breathing easier" section based on Canadian pulmonary rehab skills. Lung Foundation Australia's plan is acknowledged for the yellow-zone step approach, in the tool's About panel and the README; none of its text, artwork or logo is used. The author credit (Dr Anirudha (Ani) Garg) prints in every page footer and is set in `AUTHOR` in `data.js`.
 - **Versioning.** The version and content-review date print in the footer of page 2 (`APP_VERSION` and `CONTENT_REVIEWED` in `data.js`).
 
 ## 5. Resources: verification status

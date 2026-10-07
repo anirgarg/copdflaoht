@@ -5,12 +5,19 @@
  * clinic template file.
  */
 
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
+
+// ---- Author credit (printed in the footer and shown in the tool) ----
+const AUTHOR = {
+  name: 'Dr Anirudha (Ani) Garg, MSc MD FRACGP CCFP',
+  email: 'ani.garg.md@gmail.com',
+};
 const CONTENT_REVIEWED = '2026-10';
 
 // ---- Clinic defaults (shown until a clinic template is loaded or edited) ----
 const CLINIC_DEFAULTS = {
   name: 'Kingston Community Health Centre',
+  program: 'Regional Lung Health Program',
   phone: '',
   afterHours: 'call Health811 (811) or go to the nearest emergency department',
   emergency: '911',

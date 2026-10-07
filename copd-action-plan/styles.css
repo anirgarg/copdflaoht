@@ -323,9 +323,20 @@ label.check, .radios label { display: flex; gap: 8px; align-items: center; font-
 .call strong { font-size: 13pt; letter-spacing: 0.02em; }
 
 .page-foot {
-  margin-top: auto; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px;
   font-size: 7.4pt; color: var(--p-soft); border-top: 1px solid var(--p-rule); padding-top: 4px;
 }
+.foot-text { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; flex: 1; min-width: 0; }
+.page-foot.with-code .foot-text { flex-direction: column; justify-content: flex-end; }
+/* Edit code: fixed physical size so it scans reliably from paper or PDF */
+.edit-code { display: flex; align-items: flex-end; gap: 8px; flex: none; max-width: 3.4in; }
+/* about 0.55 mm per square, never smaller than 1.05in (0.8in when squeezed onto page 1) */
+.edit-code .qr { --qr: clamp(1.05in, calc(var(--qr-modules, 45) * 0.022in), 1.75in); width: var(--qr); height: var(--qr); flex: none; background: #fff; }
+.page-foot.compact .edit-code .qr { --qr: clamp(0.8in, calc(var(--qr-modules, 45) * 0.016in), 1.05in); }
+.page-foot.compact .edit-code { max-width: 2.6in; }
+.edit-code .qr svg { display: block; width: 100%; height: 100%; }
+.edit-code p { font-size: 6.6pt; line-height: 1.25; color: var(--p-soft); }
+.edit-code p b { display: block; color: var(--p-ink); font-size: 7pt; }
 
 /* ---------- page 2 ---------- */
 .card { border: 1.5px solid var(--cc, var(--navy)); border-radius: 6px; overflow: hidden; }

@@ -30,6 +30,7 @@
         <button type="button" class="btn danger" id="top-template-reset" title="Reset clinic details, wording, resources and layout to the original defaults">Reset template</button>
         <span class="divider" aria-hidden="true"></span>
         <button type="button" class="btn" id="new-patient">New patient</button>
+        <button type="button" class="btn" data-file="plan-file" title="Open a plan PDF, a photo of a printed plan, or a saved plan file">Open old plan</button>
         <button type="button" class="btn primary" id="print-btn">Print / Save PDF</button>
       </div>
     </div>
@@ -39,6 +40,7 @@
     <!-- ================= EDITOR (screen only) ================= -->
     <form class="editor" id="editor" autocomplete="off" onsubmit="return false">
       <p class="fit-warning" id="fit-warning" role="status" hidden></p>
+      <p class="fit-warning" id="code-warning" role="status" hidden></p>
 
       <details class="panel" open>
         <summary><span>Patient</span></summary>
@@ -225,6 +227,7 @@
           <label class="check"><input type="checkbox" id="opt-images" data-bind="opts.images"> Inhaler pictures</label>
           <label class="check"><input type="checkbox" id="opt-ticks" data-bind="opts.ticks"> Tick boxes instead of bullets</label>
           <label class="check"><input type="checkbox" id="opt-grey" data-bind="opts.greyscale"> Black-and-white printer (greyscale)</label>
+          <label class="check"><input type="checkbox" id="opt-code" data-bind="opts.editCode"> Print an edit code (re-open this plan later by uploading its PDF)</label>
         </div>
       </details>
 
@@ -233,11 +236,11 @@
         <div class="save-grid">
           <div>
             <p class="mini-label">Patient plan</p>
-            <p class="hint tight">Saves everything, including health information, as a file on this computer.</p>
+            <p class="hint tight"><b>Open old plan</b> accepts the plan's PDF or a photo of the printed page: the edit code on the plan refills this form, so there are no extra files to keep. <b>Save plan file</b> is optional and saves the plan, including health information, to this computer.</p>
             <div class="btnrow">
               <button type="button" class="btn" id="plan-save">Save plan file</button>
-              <button type="button" class="btn" data-file="plan-file">Open plan file</button>
-              <input type="file" id="plan-file" accept=".json,application/json" class="sr-only" tabindex="-1" aria-hidden="true">
+              <button type="button" class="btn" data-file="plan-file">Open old plan</button>
+              <input type="file" id="plan-file" accept=".pdf,application/pdf,image/*,.json,application/json" class="sr-only" tabindex="-1" aria-hidden="true">
             </div>
           </div>
           <div>
@@ -260,7 +263,8 @@
           <p><b>Created by <span id="about-author"></span></b><br><a id="about-email" href="#"></a></p>
           <p>A clinician fills in this plan with the patient. It works best alongside self-management education and follow-up, not instead of them.</p>
           <p>Default wording follows Canadian Thoracic Society and GOLD 2026 guidance, in plain language aimed at about a grade 6 reading level. Breathing skills follow those taught in Canadian pulmonary rehabilitation. The yellow-zone step approach was informed by Lung Foundation Australia's <i>My COPD Action Plan</i>; this tool is not endorsed by Lung Foundation Australia.</p>
-          <p>English is the source text. Other languages are draft translations: have a qualified medical translator check them before you give them to patients.</p>
+          <p>English is the source text. The other languages were reviewed line by line but are not certified: have a qualified medical translator check them before you give them to patients.</p>
+          <p>The edit code printed on each plan holds the same information as the printed page, so a PDF or photo of the plan can be re-opened here for editing. Nothing is uploaded; it is all read in your browser.</p>
           <p class="mini">Version <span id="about-version"></span> · content reviewed <span id="about-reviewed"></span></p>
         </div>
       </details>
@@ -272,6 +276,8 @@
     </div>
   </main>
 
+  <script src="vendor/pako.min.js?v=2.2"></script>
+  <script src="vendor/qrcode.js?v=2.2"></script>
   <script src="data.js?v=2.2"></script>
   <script src="i18n/en.js?v=2.2"></script>
   <script src="i18n/fr.js?v=2.2"></script>

@@ -35,7 +35,7 @@
       defaultLists: builtInLists(),
       texts: { days: '2–3', step2cDo: '', step3Do: '' },
       resources: clone(RESOURCE_DEFAULTS),
-      opts: { page2: true, breathing: true, care: true, images: true, ticks: false, greyscale: false, paper: 'letter' },
+      opts: { page2: true, breathing: true, care: true, images: true, ticks: false, greyscale: false, editCode: true, paper: 'letter' },
     };
   }
 
@@ -194,12 +194,13 @@
     return node;
   }
 
-  function status(msg, isError) {
+  // sticky: keep the message up (e.g. while a file is being read) until the next message
+  function status(msg, isError, sticky) {
     const s = $('#status');
     s.textContent = msg;
     s.classList.toggle('error', !!isError);
     clearTimeout(status.timer);
-    status.timer = setTimeout(() => { s.textContent = ''; }, 5000);
+    if (!sticky) status.timer = setTimeout(() => { s.textContent = ''; }, isError ? 9000 : 5000);
   }
 
   // ============================================================
@@ -453,7 +454,7 @@
     planDirty = false;
     status('Plan saved to your computer. Store it as you would any health record.');
   });
-  readJSONFile($('#plan-file'), (data, name) => {
+  function applyPlanData(data, name) {
     if (!data || data.kind !== 'plan' || !data.plan) { status('That is not a saved patient plan. Use "Load template" for clinic template files.', true); return; }
     // Plans saved before v2.2 kept the language and wording in data.template; use them if present.
     const legacy = data.template && typeof data.template === 'object' ? hydrateTemplate(data.template) : null;
@@ -461,12 +462,42 @@
       defaultLang: legacy && (has(data.template, 'lang') || has(data.template, 'defaultLang')) ? legacy.defaultLang : state.defaultLang,
       defaultLists: legacy && (has(data.template, 'lists') || has(data.template, 'defaultLists')) ? legacy.defaultLists : state.defaultLists,
     };
-    const plan = hydratePlan(data.plan, base); // the clinic template on this computer is left as it is
-    state = { ...state, ...plan };
+    applyPlan(hydratePlan(data.plan, base), `Opened ${name}.`);
+  }
+  function applyPlan(plan, message) {
+    state = { ...state, ...plan }; // the clinic template on this computer is left as it is
     reviewTouched = true;
     planDirty = false;
     renderAll();
-    status(`Opened ${name}.`);
+    status(message);
+  }
+
+  // "Open plan" accepts a saved plan file (.json), a PDF printed from this tool, or a photo/scan of the plan.
+  $('#plan-file').addEventListener('change', async e => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    const isJSON = /\.json$/i.test(file.name) || file.type === 'application/json';
+    try {
+      if (isJSON) {
+        let data;
+        try { data = JSON.parse(await file.text()); } catch (err) { status('That file could not be read. Choose a plan PDF, a photo of the plan, or a .json file saved from this tool.', true); return; }
+        applyPlanData(data, file.name);
+        return;
+      }
+      status('Looking for the edit code…', false, true);
+      const bytes = /\.pdf$/i.test(file.name) || file.type === 'application/pdf' ? await codeFromPdf(file) : await codeFromImage(file);
+      if (!bytes) {
+        status('No edit code found. Use a PDF printed from this tool (version 2.2 or later) with "Print an edit code" switched on, or a clear, flat photo of the page with the code.', true);
+        return;
+      }
+      const plan = decodePlan(bytes);
+      if (!plan) { status('An edit code was found but it is not from this tool, or it is damaged.', true); return; }
+      applyPlan(plan, `Plan restored from the edit code in ${file.name}. Check the details before printing.`);
+    } catch (err) {
+      console.error(err);
+      status('That file could not be read. Try the original PDF, or a clearer photo.', true);
+    }
   });
 
   $('#new-patient').addEventListener('click', () => {
@@ -492,6 +523,197 @@
   });
 
   $('#print-btn').addEventListener('click', () => window.print());
+
+  // ============================================================
+  //  EDIT CODE — the plan's form data, compressed into a QR code printed on the plan.
+  //  Uploading the printed PDF (or a photo of it) restores the form. The code holds the
+  //  same patient information that is printed on the page, nothing more.
+  // ============================================================
+  const CODE_MAGIC = [0x43, 0x41, 0x50, 0x03]; // "CAP", format 3
+  // Preset compression dictionary: common keys, values and phrases cost only a few bytes each.
+  // NEVER edit this for format 3 (old printed codes would stop reading); add a new format instead.
+  const CODE_DICT = new TextEncoder().encode([
+    '{"lang":"en","patient":{"name":"","date":"2026-01-01","review":"2027-01-01","provider":"Dr. "},',
+    '"lists":{"greenSigns":["gSign1","gSign2","gSign3"],"greenStayWell":["gWell1","gWell2","gWell3","gWell4","gWell5","-gWell6"],',
+    '"yellowSigns":["ySign1","ySign2","ySign3","ySign4","ySign5","-ySign6","-ySign7"],',
+    '"redSigns":["rSign1","rSign2","rSign3","rSign4","rSign5","rSign6","-rSign7"],"redWhileWaiting":["rWait1","rWait2","rWait3","rWait4"],',
+    '"activities":["act1","act2","act3","act4","act5","act6"]},',
+    '"meds":{"daily":[["trelegy","","1 inhalation once a day"],["spiriva_respimat","","2 puffs once a day"],["breztri","","2 puffs twice a day"]],',
+    '"reliever":[["ventolin_mdi","","1–2 puffs every 4–6 hours if needed"]],"rescueSteroid":[["prednisone","","40 mg once a day for 5 days"]],',
+    '"rescueAbx":[["amoxicillin","","500 mg three times a day for 5 days"],["augmentin","","875 mg twice a day for 5 days"],["doxycycline","","100 mg twice a day for 5 days"]]},',
+    '"baseline":{"phlegm":"Small amount, white","spo2":"92%"},"oxygen":{"use":"yes","rest":"2 L/min","activity":"3 L/min","sleep":"2 L/min","hours":"16"},',
+    '"flare":{"technique":"Pursed-lip breathing","reliever":"Ventolin 2–4 puffs every 4 hours","followUp":"2 days"},"redNotes":"",',
+    '"amb":{"address":", Kingston ON","contacts":[["","Wife","613-"],["","Husband","613-"],["","Daughter","613-"],["","Son","613-"]],',
+    '"allergies":"None known","conditions":"Heart failure, diabetes","spo2":"88–92%","co2":true,"alertCard":true,"acp":"yes","sdm":"","notes":""},',
+    '"care":{"flu":"","covid":"","pneumo":"","rsv":"","rehab":"","technique":"","smoking":"former"}}',
+    ' advair anoro breo duaklir incruse inspiolto lupin seebri serevent spiriva_handihaler symbicort tudorza ultibro wixela',
+    ' azithromycin erythromycin roflumilast ventolin_diskus airomir bricanyl atrovent combivent prednisolone medrol',
+    ' clarithromycin cefuroxime sulfamethoxazole moxifloxacin levofloxacin __other mg mcg puff puffs inhalation tablet',
+    ' once a day twice a day three times a day every day as needed if needed for 7 days at bedtime in the morning Mon/Wed/Fri',
+  ].join(''));
+  const sameJSON = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  function planBaseline() {
+    const p = defaultPlan({ defaultLang: 'en', defaultLists: builtInLists() });
+    p.patient.date = ''; p.patient.review = '';
+    return p;
+  }
+  // Drop anything equal to the blank default so the code stays small.
+  function prune(value, base) {
+    if (sameJSON(value, base)) return undefined;
+    if (value && base && typeof value === 'object' && typeof base === 'object' && !Array.isArray(value) && !Array.isArray(base)) {
+      const out = {};
+      Object.keys(value).forEach(k => { const v = prune(value[k], base[k]); if (v !== undefined) out[k] = v; });
+      return out;
+    }
+    return value;
+  }
+  // Compact form: list items as short strings, table rows as arrays (keeps the QR code small).
+  //   list item: "gSign1" (default wording, ticked) · "-gSign1" (unticked) · "+text" (own wording) · "!text" (own, unticked)
+  const ROW_SHAPES = { med: ['med', 'other', 'instr'], contact: ['name', 'rel', 'phone'] };
+  const toRow = (obj, shape) => { const a = shape.map(k => obj[k] || ''); while (a.length && a[a.length - 1] === '') a.pop(); return a; };
+  const fromRow = (arr, shape) => { const o = {}; shape.forEach((k, i) => { o[k] = typeof arr[i] === 'string' ? arr[i] : ''; }); return o; };
+  function packPlan(p) {
+    p = clone(p);
+    if (p.lists) Object.keys(p.lists).forEach(k => {
+      p.lists[k] = p.lists[k].map(i => (i.key ? (i.on ? '' : '-') + i.key : (i.on ? '+' : '!') + i.text));
+    });
+    if (p.meds) Object.keys(p.meds).forEach(k => { p.meds[k] = p.meds[k].map(r => toRow(r, ROW_SHAPES.med)); });
+    if (p.amb && p.amb.contacts) p.amb.contacts = p.amb.contacts.map(r => toRow(r, ROW_SHAPES.contact));
+    return p;
+  }
+  function unpackPlan(p) {
+    if (!p || typeof p !== 'object') return {};
+    if (p.lists && typeof p.lists === 'object') Object.keys(p.lists).forEach(k => {
+      if (!Array.isArray(p.lists[k])) return;
+      p.lists[k] = p.lists[k].filter(x => typeof x === 'string').map(x => {
+        if (x[0] === '+' || x[0] === '!') return { text: x.slice(1), on: x[0] === '+' };
+        return x[0] === '-' ? { key: x.slice(1), on: false } : { key: x, on: true };
+      });
+    });
+    if (p.meds && typeof p.meds === 'object') Object.keys(p.meds).forEach(k => {
+      if (Array.isArray(p.meds[k])) p.meds[k] = p.meds[k].map(r => fromRow(Array.isArray(r) ? r : [], ROW_SHAPES.med));
+    });
+    if (p.amb && Array.isArray(p.amb.contacts)) p.amb.contacts = p.amb.contacts.map(r => fromRow(Array.isArray(r) ? r : [], ROW_SHAPES.contact));
+    return p;
+  }
+  function encodePlan() {
+    const compact = packPlan(prune(pick(state, PLAN_FIELDS), planBaseline()) || {});
+    const packed = pako.deflateRaw(new TextEncoder().encode(JSON.stringify(compact)), { level: 9, dictionary: CODE_DICT });
+    const out = new Uint8Array(CODE_MAGIC.length + packed.length);
+    out.set(CODE_MAGIC, 0);
+    out.set(packed, CODE_MAGIC.length);
+    return out;
+  }
+  function decodePlan(bytes) {
+    bytes = Uint8Array.from(bytes);
+    if (bytes.length < CODE_MAGIC.length || CODE_MAGIC.some((b, i) => bytes[i] !== b)) return null;
+    try {
+      const json = new TextDecoder().decode(pako.inflateRaw(bytes.subarray(CODE_MAGIC.length), { dictionary: CODE_DICT }));
+      const saved = unpackPlan(JSON.parse(json));
+      // Fields left out of the code were blank defaults; the wording defaults are the built-in ones.
+      return hydratePlan(saved, { defaultLang: 'en', defaultLists: builtInLists() });
+    } catch (e) {
+      return null;
+    }
+  }
+  let lastCode = { key: '', svg: '', error: '' };
+  function editCodeSvg() {
+    const bytes = encodePlan();
+    const key = Array.prototype.join.call(bytes, ',');
+    if (key === lastCode.key) return lastCode;
+    let latin1 = '';
+    bytes.forEach(b => { latin1 += String.fromCharCode(b); });
+    // Level M (15% recovery) suits print and photos; L only if the plan is very long.
+    for (const level of ['M', 'L']) {
+      try {
+        const qr = qrcode(0, level);
+        qr.addData(latin1, 'Byte');
+        qr.make();
+        // margin = the 4-module quiet zone scanners need
+        lastCode = { key, svg: qr.createSvgTag({ cellSize: 2, margin: 8, scalable: true }), modules: qr.getModuleCount() + 8, error: '' };
+        return lastCode;
+      } catch (e) { /* too long at this level: try the next */ }
+    }
+    lastCode = { key, svg: '', error: 'This plan is too long for an edit code. Use "Save plan file" to keep an editable copy.' };
+    return lastCode;
+  }
+
+  // Readers, loaded only when someone uploads a PDF or photo
+  let jsQRReady = null;
+  function loadJsQR() {
+    if (!jsQRReady) {
+      jsQRReady = new Promise((resolve, reject) => {
+        const sc = document.createElement('script');
+        sc.src = 'vendor/jsQR.js?v=' + APP_VERSION;
+        sc.onload = () => resolve(window.jsQR);
+        sc.onerror = () => { jsQRReady = null; reject(new Error('jsQR failed to load')); };
+        document.head.append(sc);
+      });
+    }
+    return jsQRReady;
+  }
+  function scanCanvas(jsQR, canvas) {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const found = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+    return found && found.binaryData && decodePlan(found.binaryData) ? found.binaryData : null;
+  }
+  // The code sits in the bottom corner of the last page: try that corner first, then the whole page.
+  function scanRegions(jsQR, source, w, h) {
+    const regions = [[0.45, 0.72, 0.55, 0.28], [0, 0.72, 0.55, 0.28], [0, 0, 1, 1]];
+    for (const [x, y, rw, rh] of regions) {
+      const c = document.createElement('canvas');
+      c.width = Math.round(w * rw); c.height = Math.round(h * rh);
+      c.getContext('2d').drawImage(source, w * x, h * y, w * rw, h * rh, 0, 0, c.width, c.height);
+      const hit = scanCanvas(jsQR, c);
+      if (hit) return hit;
+    }
+    return null;
+  }
+  async function codeFromPdf(file) {
+    const [jsQR, pdfjs] = await Promise.all([loadJsQR(), import('./vendor/pdf.min.js')]);
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL('vendor/pdf.worker.min.js', document.baseURI).href;
+    const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false }).promise;
+    try {
+      for (let n = doc.numPages; n >= 1; n--) {
+        const page = await doc.getPage(n);
+        // 1) the bottom of the page (where the code is printed) at high resolution, 2) the whole page
+        for (const [scale, fromY] of [[6, 0.7], [4, 0], [9, 0.7]]) {
+          const vp = page.getViewport({ scale });
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(vp.width); canvas.height = Math.round(vp.height * (1 - fromY));
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+          await page.render({ canvasContext: ctx, viewport: vp, transform: [1, 0, 0, 1, 0, -vp.height * fromY] }).promise;
+          const hit = fromY ? scanCanvas(jsQR, canvas) || scanRegions(jsQR, canvas, canvas.width, canvas.height)
+                            : scanRegions(jsQR, canvas, canvas.width, canvas.height);
+          canvas.width = canvas.height = 0; // free memory
+          if (hit) return hit;
+        }
+      }
+    } finally {
+      doc.destroy();
+    }
+    return null;
+  }
+  async function codeFromImage(file) {
+    const jsQR = await loadJsQR();
+    const bitmap = await createImageBitmap(file);
+    try {
+      // Small scans are enlarged first (the QR reader needs a few pixels per module); big photos are reduced.
+      for (const maxSide of [2400, 3600]) {
+        const scale = maxSide / Math.max(bitmap.width, bitmap.height);
+        const c = document.createElement('canvas');
+        c.width = Math.round(bitmap.width * scale); c.height = Math.round(bitmap.height * scale);
+        c.getContext('2d').drawImage(bitmap, 0, 0, c.width, c.height);
+        const hit = scanRegions(jsQR, c, c.width, c.height);
+        if (hit) return hit;
+      }
+    } finally {
+      bitmap.close && bitmap.close();
+    }
+    return null;
+  }
 
   // ============================================================
   //  PRINTED PLAN
@@ -645,9 +867,19 @@
   }
 
   function pageFoot(n) {
-    return el('footer', { class: 'page-foot' },
-      el('span', { text: `${t('title')} · ${pageLabel(n)}` }),
-      el('span', { class: 'credit', text: `${t('creditLabel')} ${AUTHOR.name} · v${APP_VERSION}` }));
+    const last = n === (state.opts.page2 ? 2 : 1);
+    const code = last && state.opts.editCode ? editCodeSvg() : null;
+    const where = /^https?:/.test(location.protocol) ? location.host + location.pathname.replace(/index\.html$/, '') : '';
+    const compact = !state.opts.page2; // page 1 has little room to spare
+    return el('footer', { class: 'page-foot' + (code && code.svg ? ' with-code' : '') + (compact ? ' compact' : '') },
+      el('div', { class: 'foot-text' },
+        el('span', { text: `${t('title')} · ${pageLabel(n)}` }),
+        el('span', { class: 'credit', text: `${t('creditLabel')} ${AUTHOR.name} · v${APP_VERSION}` })),
+      code && code.svg && el('div', { class: 'edit-code', style: `--qr-modules: ${code.modules}` },
+        el('div', { class: 'qr', 'aria-hidden': 'true', html: code.svg }),
+        el('p', null, el('b', { text: 'Edit code' }), compact
+          ? ' Care team: upload this PDF or a photo of it to the COPD Action Plan builder to edit.'
+          : ` For the care team: to update this plan, upload this PDF or a photo of this page to the COPD Action Plan builder${where ? ' (' + where + ')' : ''}.`)));
   }
 
   function renderPage2() {
@@ -774,6 +1006,8 @@
 
   function checkOverflow() {
     autoFit();
+    const codeNote = $('#code-warning');
+    if (codeNote) { codeNote.hidden = !(state.opts.editCode && lastCode.error); codeNote.textContent = lastCode.error; }
     const warn = $('#fit-warning');
     const over = [...document.querySelectorAll('#sheet .page')].filter(p => p.scrollHeight > p.clientHeight + 2)
       .map(p => (p.classList.contains('p1') ? '1' : '2'));

@@ -1,4 +1,4 @@
-# Content review: version 2.1 (October 2026)
+# Content review: version 2.2 (October 2026)
 
 Prepared for Dr Anirudha (Ani) Garg, MSc MD FRACGP CCFP · Kingston Community Health Centre
 
@@ -47,14 +47,29 @@ and what still needs a human to check before the plan is offered to other provid
 - Translations were drafted for this release. **Have a qualified medical translator review them before patient use** (forward and back
   translation is best practice). French uses Canadian terms (MPOC).
 
-### Translation notes for the reviewer
+### Translation notes for the reviewer (after the v2.2 line-by-line review)
 
-- **All languages:** clinic-entered text (after-hours advice, resources, custom wording, medicine instructions) prints exactly as typed and is not translated.
-- **French (Canadian):** MPOC; reliever = "pompe de secours"; rescue pack = "médicaments de réserve" (confirm what the clinic calls it); "mandataire spécial"; a few masculine-only forms remain (rSign1, rWait1); "vaccin contre la pneumonie" is plain rather than "pneumococcique".
-- **Spanish:** reliever = "inhalador de rescate" and rescue pack = "medicinas de reserva", so check the two read as clearly different; flare-up = "crisis"; substitute decision-maker = "persona que decide por mí" (plain, not legal).
-- **Simplified Chinese / Traditional (Cantonese readers):** 慢阻肺 in the title; flare-up = 病情加重; reliever 缓解/紓緩吸入器 (HK uses 紓); yue uses some colloquial Cantonese (沖涼, 執床), so check the register; pneumonia vaccine differs (肺炎疫苗 vs 肺炎球菌疫苗).
-- **Arabic:** title reordered to read naturally ("My action plan / for COPD"); reliever = بخاخ التخفيف; a few masculine forms.
-- **Hindi:** gender-neutral phrasing where possible, slash forms elsewhere (करूँगा/करूँगी); uses common English loanwords (इनहेलर, इमरजेंसी, एक्शन प्लान). Check the level of English mixing suits patients.
+Every string in all six languages was back-translated and checked for meaning, grammar, consistent terms,
+first-person voice and fit. Clinic-entered text (after-hours advice, resources, custom wording, medicine
+instructions) prints exactly as typed.
+
+| Concept | French (CA) | Spanish | Simplified Chinese | Traditional (HK) | Arabic | Hindi |
+|---|---|---|---|---|---|---|
+| COPD | MPOC | EPOC | 慢阻肺 | 慢阻肺 | مرض الانسداد الرئوي المزمن (COPD) | सीओपीडी |
+| flare-up | poussée | crisis | 病情加重 | 病情加重 | نوبة تفاقم | तकलीफ़ बढ़ना |
+| flare-up prescription | ordonnance en cas de poussée | receta para las crisis | 病情加重备用药（处方） | 病情加重備用藥（處方） | وصفة نوبة التفاقم | तकलीफ़ बढ़ने पर लेने वाली दवा |
+| reliever puffer | pompe de secours | inhalador de rescate | 缓解吸入器 | 紓緩吸入器 | بخاخ التخفيف السريع | राहत वाला इनहेलर |
+| steroid | corticostéroïde | corticoide | 激素（类固醇） | 類固醇 | الستيرويد (الكورتيزون) | स्टेरॉयड दवा |
+| pulmonary rehab | réadaptation pulmonaire | rehabilitación pulmonar | 肺康复 | 肺復康 | إعادة التأهيل الرئوي | पल्मोनरी रिहैब |
+
+Fixed during review (examples): the Cantonese pursed-lip instruction said "close the lips"; Chinese "with or
+without fever" read as "possibly with fever"; French/Spanish agreement errors; Hindi gendered verb forms
+replaced with neutral phrasing; Arabic masculine commands replaced with first person.
+
+**Still for a qualified medical translator:** the flare-up and flare-up-prescription terms in each language
+(clinic usage may differ), steroid glosses (激素, الكورتيزون), Ontario legal terms (substitute decision-maker,
+advance care planning), the level of English loanwords in Hindi, and the Cantonese register (written Hong Kong
+Chinese was chosen).
 
 ## 4. Hosting and legal
 

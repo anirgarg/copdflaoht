@@ -2,7 +2,6 @@
  * {emergency} and {days} are filled in from the editor. Keep keys identical across languages. */
 var TRANSLATIONS = window.TRANSLATIONS || (window.TRANSLATIONS = {});
 TRANSLATIONS.en = {
-  title1: 'My COPD', title2: 'Action Plan',
   title: 'My COPD Action Plan',
   nameLabel: 'My name', preparedLabel: 'Prepared with', dateLabel: 'Date', reviewLabel: 'Review by',
   reviewNote: 'Review this plan at least once a year and after every flare-up.',

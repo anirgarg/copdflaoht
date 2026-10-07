@@ -573,7 +573,7 @@
     // Red
     const red = zone('red', 'very', 'redSigns', [
       el('div', { class: 'call' }, el('span', { text: t('callAmbulance') }), el('strong', { text: t('dialNow') })),
-      act(t('whileWaiting'), bullets('redWhileWaiting', i => (i.key === 'rWait3' && relieverText) ? el('span', { dir: 'auto', text: sep() + relieverText }) : null)),
+      act(t('whileWaiting'), bullets('redWhileWaiting', i => (i.key === 'rWait3' && relieverText) ? [sep(), el('span', { dir: 'auto', text: relieverText })] : null)),
       act(t('notesLabel'), state.redNotes.trim() ? el('span', { class: 'pre', dir: 'auto', text: state.redNotes.trim() }) : line('wide')),
     ]);
 

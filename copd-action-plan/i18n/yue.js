@@ -2,7 +2,6 @@
  * {emergency} and {days} are filled in from the editor. Keep keys identical across languages. */
 var TRANSLATIONS = window.TRANSLATIONS || (window.TRANSLATIONS = {});
 TRANSLATIONS.yue = {
-  title1: '我的慢阻肺', title2: '行動計劃',
   title: '我的慢阻肺行動計劃',
   nameLabel: '我的姓名', preparedLabel: '共同制定人', dateLabel: '日期', reviewLabel: '覆檢日期',
   reviewNote: '本計劃每年最少覆檢一次，每次病情加重後亦要覆檢。',

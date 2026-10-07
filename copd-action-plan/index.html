@@ -4,104 +4,263 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>COPD Action Plan Builder</title>
-  <meta name="description" content="Build, customize and print a patient COPD action plan.">
+  <meta name="description" content="Build, customize and print a two-page COPD action plan with your patient.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
   <link rel="stylesheet" href="styles.css">
+  <style id="page-style">@page { size: letter landscape; margin: 0; }</style>
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
         <h1>COPD Action Plan</h1>
-        <span>Fill in the left side. The page on the right is what prints.</span>
+        <span>Fill in the form with your patient. The preview shows exactly what prints.</span>
       </div>
       <div class="topbar-actions">
         <label class="lang">
           <span>Plan language</span>
-          <select id="lang-select"></select>
+          <select id="lang-select" data-bind="lang"></select>
         </label>
+        <button type="button" class="btn" id="new-patient">New patient</button>
         <button type="button" class="btn primary" id="print-btn">Print / Save PDF</button>
       </div>
     </div>
   </header>
 
   <main class="layout">
-    <!-- ============ EDITOR (screen only) ============ -->
-    <form class="editor" id="editor" autocomplete="off">
-      <details class="panel" open>
-        <summary>Patient</summary>
-        <div class="fields two">
-          <label>Name <input type="text" id="patient-name" data-bind="patient.name"></label>
-          <label>Date <input type="date" id="patient-date" data-bind="patient.date"></label>
-        </div>
-        <p class="hint">Patient details are never saved. Use <b>Clear patient</b> between patients.</p>
-      </details>
+    <!-- ================= EDITOR (screen only) ================= -->
+    <form class="editor" id="editor" autocomplete="off" onsubmit="return false">
+      <p class="fit-warning" id="fit-warning" role="status" hidden></p>
 
       <details class="panel" open>
-        <summary>Medications</summary>
-        <div id="med-editor"></div>
-      </details>
-
-      <details class="panel">
-        <summary>Zones: symptoms &amp; actions</summary>
-        <p class="hint">Untick an item to leave it off the plan, edit its wording, or add your own. Edited items stay in the words you type and are not translated.</p>
-        <div id="zone-editor"></div>
-      </details>
-
-      <details class="panel">
-        <summary>Clinic details</summary>
+        <summary><span>Patient</span></summary>
         <div class="fields">
-          <label>Clinic name <input type="text" id="clinic-name" data-bind="clinic.name" placeholder="Kingston Community Health Centre"></label>
+          <label>Name <input type="text" id="patient-name" data-bind="patient.name"></label>
+          <div class="fields two">
+            <label>Date <input type="date" id="patient-date" data-bind="patient.date"></label>
+            <label>Review by <input type="date" id="patient-review" data-bind="patient.review"></label>
+          </div>
+          <label>Prepared with (health care provider) <input type="text" id="clinic-provider" data-bind="clinic.provider" placeholder="e.g. Dr. Lee, NP Patel"></label>
+        </div>
+        <p class="hint">Review by is set a year ahead. Nothing you type leaves this computer, and patient details are not remembered. Use <b>Save plan file</b> to keep a copy.</p>
+      </details>
+
+      <details class="panel zone-panel green" open>
+        <summary><span>Green zone · I feel well</span></summary>
+        <div class="fields two">
+          <label>Usual phlegm (colour, amount) <input type="text" id="base-phlegm" data-bind="baseline.phlegm" placeholder="e.g. Small amount, white"></label>
+          <label>Usual oxygen level (SpO₂) <input type="text" id="base-spo2" data-bind="baseline.spo2" placeholder="e.g. 92%"></label>
+        </div>
+        <h3 class="sub">Daily COPD medicines</h3>
+        <div data-meds="daily"></div>
+        <h3 class="sub">Reliever</h3>
+        <div data-meds="reliever"></div>
+        <h3 class="sub">Home oxygen</h3>
+        <div class="radios" role="radiogroup" aria-label="Home oxygen">
+          <label><input type="radio" name="oxy" value="" data-bind="oxygen.use"> Not set</label>
+          <label><input type="radio" name="oxy" value="no" data-bind="oxygen.use"> No</label>
+          <label><input type="radio" name="oxy" value="yes" data-bind="oxygen.use"> Yes</label>
+        </div>
+        <div class="fields four oxy-fields">
+          <label>At rest <input type="text" id="oxy-rest" data-bind="oxygen.rest" placeholder="2 L/min"></label>
+          <label>Activity <input type="text" id="oxy-activity" data-bind="oxygen.activity" placeholder="3 L/min"></label>
+          <label>Sleep <input type="text" id="oxy-sleep" data-bind="oxygen.sleep" placeholder="2 L/min"></label>
+          <label>Hours/day <input type="text" id="oxy-hours" data-bind="oxygen.hours" placeholder="16+"></label>
+        </div>
+        <details class="more">
+          <summary>Wording: signs and "to stay well"</summary>
+          <h3 class="sub">Normal for me</h3>
+          <div data-list="greenSigns" data-add="Add sign"></div>
+          <h3 class="sub">To stay well I will</h3>
+          <div data-list="greenStayWell" data-add="Add item"></div>
+          <button type="button" class="link-btn" data-reset-list="greenSigns greenStayWell">Restore default wording</button>
+        </details>
+      </details>
+
+      <details class="panel zone-panel yellow" open>
+        <summary><span>Yellow zone · Flare-up</span></summary>
+        <h3 class="sub">Step 1 · More reliever</h3>
+        <div class="fields">
+          <label>How to use the reliever during a flare-up <input type="text" id="flare-reliever" data-bind="flare.reliever" placeholder="Leave blank to repeat the reliever above, e.g. Ventolin 2–4 puffs every 4 hours"></label>
+          <label>Breathing techniques / recovery plan (optional) <input type="text" id="flare-technique" data-bind="flare.technique" placeholder="e.g. Pursed-lip breathing, pace activities"></label>
+        </div>
+        <h3 class="sub">Step 2 · Rescue pack</h3>
+        <p class="hint tight">Leave both empty if the patient has no rescue pack; the plan then skips to step 3.</p>
+        <p class="mini-label">Steroid</p>
+        <div data-meds="rescueSteroid"></div>
+        <p class="mini-label">Antibiotic</p>
+        <div data-meds="rescueAbx"></div>
+        <label class="stack">After starting the rescue pack, I will… <small>(clinic wording)</small>
+          <input type="text" id="text-step2c" data-bind="texts.step2cDo" placeholder="call my clinic the same or next working day to let them know"></label>
+        <label class="stack">The clinic will call the patient within… <small>(optional)</small>
+          <input type="text" id="flare-followup" data-bind="flare.followUp" placeholder="e.g. 2 days"></label>
+        <h3 class="sub">Step 3 · Not getting better</h3>
+        <div class="fields two">
+          <label>After how many days <input type="text" id="text-days" data-bind="texts.days" placeholder="2–3"></label>
+          <label>Then I will… <input type="text" id="text-step3" data-bind="texts.step3Do" placeholder="call my clinic for an urgent same-day appointment"></label>
+        </div>
+        <details class="more">
+          <summary>Wording: signs of a flare-up</summary>
+          <div data-list="yellowSigns" data-add="Add sign"></div>
+          <button type="button" class="link-btn" data-reset-list="yellowSigns">Restore default wording</button>
+        </details>
+      </details>
+
+      <details class="panel zone-panel red">
+        <summary><span>Red zone · Emergency</span></summary>
+        <label class="stack">Notes (optional) <textarea id="red-notes" data-bind="redNotes" rows="2" placeholder="e.g. Use reliever 4–6 puffs, repeat every 20 minutes until help arrives"></textarea></label>
+        <details class="more">
+          <summary>Wording: emergency signs and "while I wait"</summary>
+          <h3 class="sub">Signs of an emergency</h3>
+          <div data-list="redSigns" data-add="Add sign"></div>
+          <h3 class="sub">While I wait for help</h3>
+          <div data-list="redWhileWaiting" data-add="Add item"></div>
+          <button type="button" class="link-btn" data-reset-list="redSigns redWhileWaiting">Restore default wording</button>
+        </details>
+      </details>
+
+      <details class="panel">
+        <summary><span>Page 2 · Paramedic information</span></summary>
+        <div class="fields">
+          <label>Home address <input type="text" id="amb-address" data-bind="amb.address"></label>
+        </div>
+        <h3 class="sub">Emergency contacts</h3>
+        <div id="contacts-editor"></div>
+        <div class="fields">
+          <label>Allergies <input type="text" id="amb-allergies" data-bind="amb.allergies" placeholder="e.g. Penicillin (rash)"></label>
+          <label>Other health conditions <input type="text" id="amb-conditions" data-bind="amb.conditions" placeholder="e.g. Heart failure, type 2 diabetes"></label>
+          <div class="fields two">
+            <label>Target SpO₂ <input type="text" id="amb-spo2" data-bind="amb.spo2" placeholder="88–92%"></label>
+            <div class="checks">
+              <label class="check"><input type="checkbox" id="amb-co2" data-bind="amb.co2"> Risk of CO₂ retention</label>
+              <label class="check"><input type="checkbox" id="amb-alert" data-bind="amb.alertCard"> Carries oxygen alert card</label>
+            </div>
+          </div>
+          <div class="radios" role="radiogroup" aria-label="Goals of care discussed">
+            <span class="mini-label">Goals of care discussed?</span>
+            <label><input type="radio" name="acp" value="" data-bind="amb.acp"> Not set</label>
+            <label><input type="radio" name="acp" value="yes" data-bind="amb.acp"> Yes</label>
+            <label><input type="radio" name="acp" value="no" data-bind="amb.acp"> No</label>
+          </div>
+          <label>Substitute decision-maker <input type="text" id="amb-sdm" data-bind="amb.sdm" placeholder="Name and phone"></label>
+          <label>Notes for first responders <textarea id="amb-notes" data-bind="amb.notes" rows="2" placeholder="e.g. Known CO₂ retainer. Previous ICU admission 2024."></textarea></label>
+        </div>
+      </details>
+
+      <details class="panel">
+        <summary><span>Page 2 · My COPD care</span></summary>
+        <label class="check"><input type="checkbox" id="opt-care" data-bind="opts.care"> Include "My COPD care" checklist</label>
+        <div class="fields two care-fields">
+          <label>Flu vaccine <input type="text" id="care-flu" data-bind="care.flu" placeholder="date"></label>
+          <label>COVID-19 vaccine <input type="text" id="care-covid" data-bind="care.covid" placeholder="date"></label>
+          <label>Pneumonia vaccine <input type="text" id="care-pneumo" data-bind="care.pneumo" placeholder="date"></label>
+          <label>RSV vaccine <input type="text" id="care-rsv" data-bind="care.rsv" placeholder="date"></label>
+          <label>Pulmonary rehab <input type="text" id="care-rehab" data-bind="care.rehab" placeholder="referred / completed, date"></label>
+          <label>Puffer technique checked <input type="text" id="care-technique" data-bind="care.technique" placeholder="date"></label>
+        </div>
+        <div class="radios" role="radiogroup" aria-label="Smoking">
+          <span class="mini-label">Smoking</span>
+          <label><input type="radio" name="smoke" value="" data-bind="care.smoking"> Not set</label>
+          <label><input type="radio" name="smoke" value="never" data-bind="care.smoking"> Never</label>
+          <label><input type="radio" name="smoke" value="former" data-bind="care.smoking"> Quit</label>
+          <label><input type="radio" name="smoke" value="current" data-bind="care.smoking"> Smokes (quit support offered)</label>
+        </div>
+      </details>
+
+      <details class="panel">
+        <summary><span>Page 2 · Breathlessness &amp; resources</span></summary>
+        <label class="check"><input type="checkbox" id="opt-breathing" data-bind="opts.breathing"> Include "Managing breathlessness"</label>
+        <details class="more">
+          <summary>Wording: activities that cause breathlessness</summary>
+          <div data-list="activities" data-add="Add activity"></div>
+          <button type="button" class="link-btn" data-reset-list="activities">Restore default wording</button>
+        </details>
+        <h3 class="sub">Help and information</h3>
+        <div id="resources-editor"></div>
+        <button type="button" class="link-btn" id="reset-resources">Restore default resources</button>
+      </details>
+
+      <details class="panel">
+        <summary><span>Clinic setup</span></summary>
+        <p class="hint tight">Set once per clinic. Remembered in this browser and included in the clinic template file.</p>
+        <div class="fields">
+          <label>Clinic name <input type="text" id="clinic-name" data-bind="clinic.name"></label>
           <div class="fields two">
             <label>Clinic phone <input type="tel" id="clinic-phone" data-bind="clinic.phone" placeholder="613-555-0123"></label>
             <label>Emergency number <input type="text" id="clinic-emergency" data-bind="clinic.emergency" placeholder="911"></label>
           </div>
-          <label>Health care provider <input type="text" id="clinic-provider" data-bind="clinic.provider" placeholder="Dr. / NP name"></label>
+          <label>After-hours advice <input type="text" id="clinic-afterhours" data-bind="clinic.afterHours" placeholder="e.g. Health811: call 811"></label>
+          <div class="logo-row">
+            <span class="mini-label">Clinic logo</span>
+            <label class="btn small" for="logo-file">Choose image</label>
+            <input type="file" id="logo-file" accept="image/*" class="sr-only">
+            <button type="button" class="btn small" id="logo-remove">Remove</button>
+          </div>
         </div>
       </details>
 
       <details class="panel">
-        <summary>Notes</summary>
-        <label class="sr-only" for="notes">Notes printed at the bottom of the plan</label>
-        <textarea id="notes" data-bind="notes" rows="3" placeholder="e.g. Pulmonary rehab Tuesdays 10 am. Flu shot every fall."></textarea>
-      </details>
-
-      <details class="panel">
-        <summary>Layout &amp; printing</summary>
-        <div class="toggles">
-          <label><input type="checkbox" id="opt-images" data-bind="opts.images"> Show inhaler pictures</label>
-          <label><input type="checkbox" id="opt-checkboxes" data-bind="opts.checkboxes"> Tick boxes beside each item</label>
-          <label><input type="checkbox" id="opt-faces" data-bind="opts.faces"> Zone faces (😊 😐 😞)</label>
-          <label><input type="checkbox" id="opt-blank" data-bind="opts.blankLines"> Write-in lines for empty medications</label>
-          <label><input type="checkbox" id="opt-large" data-bind="opts.largePrint"> Large print</label>
+        <summary><span>Layout</span></summary>
+        <div class="fields">
+          <div class="radios" role="radiogroup" aria-label="Paper size">
+            <span class="mini-label">Paper</span>
+            <label><input type="radio" name="paper" value="letter" data-bind="opts.paper"> Letter</label>
+            <label><input type="radio" name="paper" value="a4" data-bind="opts.paper"> A4</label>
+          </div>
+          <label class="check"><input type="checkbox" id="opt-page2" data-bind="opts.page2"> Print page 2</label>
+          <label class="check"><input type="checkbox" id="opt-images" data-bind="opts.images"> Inhaler pictures</label>
+          <label class="check"><input type="checkbox" id="opt-ticks" data-bind="opts.ticks"> Tick boxes instead of bullets</label>
+          <label class="check"><input type="checkbox" id="opt-grey" data-bind="opts.greyscale"> Black-and-white printer (greyscale)</label>
         </div>
       </details>
 
-      <details class="panel">
-        <summary>Save &amp; load</summary>
-        <p class="hint">Your clinic details, medications, zone wording and layout are remembered in this browser. Save a template file to share a setup with colleagues or use it on another computer.</p>
-        <div class="btnrow">
-          <button type="button" class="btn" id="export-btn">Save template file</button>
-          <label class="btn" for="import-file">Load template file</label>
-          <input type="file" id="import-file" accept=".json,application/json" class="sr-only">
-        </div>
-        <div class="btnrow">
-          <button type="button" class="btn" id="clear-patient-btn">Clear patient</button>
-          <button type="button" class="btn danger" id="reset-btn">Reset everything</button>
+      <details class="panel" open>
+        <summary><span>Save &amp; open</span></summary>
+        <div class="save-grid">
+          <div>
+            <p class="mini-label">Patient plan</p>
+            <p class="hint tight">Saves everything, including health information, as a file on this computer.</p>
+            <div class="btnrow">
+              <button type="button" class="btn" id="plan-save">Save plan file</button>
+              <label class="btn" for="plan-file">Open plan file</label>
+              <input type="file" id="plan-file" accept=".json,application/json" class="sr-only">
+            </div>
+          </div>
+          <div>
+            <p class="mini-label">Clinic template</p>
+            <p class="hint tight">Clinic details, wording, resources and layout. No patient information. Share it with colleagues.</p>
+            <div class="btnrow">
+              <button type="button" class="btn" id="template-save">Save template</button>
+              <label class="btn" for="template-file">Load template</label>
+              <input type="file" id="template-file" accept=".json,application/json" class="sr-only">
+              <button type="button" class="btn danger" id="reset-template">Reset</button>
+            </div>
+          </div>
         </div>
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </details>
+
+      <details class="panel">
+        <summary><span>About this tool</span></summary>
+        <div class="about">
+          <p>A clinician fills in this plan with the patient. It is meant to go with self-management education and follow-up, not to replace them.</p>
+          <p>Default wording follows the Canadian Thoracic Society and GOLD 2026 guidance, with plain language aimed at about a grade 6 reading level. The layout is informed by Lung Foundation Australia's <i>My COPD Action Plan</i> (2026). It is not endorsed by Lung Foundation Australia.</p>
+          <p>English is the source text. Other languages are draft translations: have a qualified medical translator check them before you give them to patients.</p>
+          <p class="mini">Version <span id="about-version"></span> · content reviewed <span id="about-reviewed"></span></p>
+        </div>
+      </details>
     </form>
 
-    <!-- ============ PRINTED SHEET ============ -->
-    <div class="sheet-wrap">
-      <article class="sheet" id="sheet" aria-label="Printable action plan preview"></article>
+    <!-- ================= PRINTED PAGES ================= -->
+    <div class="sheet-wrap" id="sheet-wrap">
+      <div class="sheet" id="sheet" aria-label="Printable action plan preview"></div>
     </div>
   </main>
 
   <script src="data.js"></script>
+  <script src="i18n/en.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

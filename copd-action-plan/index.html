@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>COPD Action Plan Builder</title>
+  <meta name="description" content="Build, customize and print a patient COPD action plan.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <h1>COPD Action Plan</h1>
+        <span>Fill in the left side. The page on the right is what prints.</span>
+      </div>
+      <div class="topbar-actions">
+        <label class="lang">
+          <span>Plan language</span>
+          <select id="lang-select"></select>
+        </label>
+        <button type="button" class="btn primary" id="print-btn">Print / Save PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- ============ EDITOR (screen only) ============ -->
+    <form class="editor" id="editor" autocomplete="off">
+      <details class="panel" open>
+        <summary>Patient</summary>
+        <div class="fields two">
+          <label>Name <input type="text" id="patient-name" data-bind="patient.name"></label>
+          <label>Date <input type="date" id="patient-date" data-bind="patient.date"></label>
+        </div>
+        <p class="hint">Patient details are never saved. Use <b>Clear patient</b> between patients.</p>
+      </details>
+
+      <details class="panel" open>
+        <summary>Medications</summary>
+        <div id="med-editor"></div>
+      </details>
+
+      <details class="panel">
+        <summary>Zones: symptoms &amp; actions</summary>
+        <p class="hint">Untick an item to leave it off the plan, edit its wording, or add your own. Edited items stay in the words you type and are not translated.</p>
+        <div id="zone-editor"></div>
+      </details>
+
+      <details class="panel">
+        <summary>Clinic details</summary>
+        <div class="fields">
+          <label>Clinic name <input type="text" id="clinic-name" data-bind="clinic.name" placeholder="Kingston Community Health Centre"></label>
+          <div class="fields two">
+            <label>Clinic phone <input type="tel" id="clinic-phone" data-bind="clinic.phone" placeholder="613-555-0123"></label>
+            <label>Emergency number <input type="text" id="clinic-emergency" data-bind="clinic.emergency" placeholder="911"></label>
+          </div>
+          <label>Health care provider <input type="text" id="clinic-provider" data-bind="clinic.provider" placeholder="Dr. / NP name"></label>
+        </div>
+      </details>
+
+      <details class="panel">
+        <summary>Notes</summary>
+        <label class="sr-only" for="notes">Notes printed at the bottom of the plan</label>
+        <textarea id="notes" data-bind="notes" rows="3" placeholder="e.g. Pulmonary rehab Tuesdays 10 am. Flu shot every fall."></textarea>
+      </details>
+
+      <details class="panel">
+        <summary>Layout &amp; printing</summary>
+        <div class="toggles">
+          <label><input type="checkbox" id="opt-images" data-bind="opts.images"> Show inhaler pictures</label>
+          <label><input type="checkbox" id="opt-checkboxes" data-bind="opts.checkboxes"> Tick boxes beside each item</label>
+          <label><input type="checkbox" id="opt-faces" data-bind="opts.faces"> Zone faces (😊 😐 😞)</label>
+          <label><input type="checkbox" id="opt-blank" data-bind="opts.blankLines"> Write-in lines for empty medications</label>
+          <label><input type="checkbox" id="opt-large" data-bind="opts.largePrint"> Large print</label>
+        </div>
+      </details>
+
+      <details class="panel">
+        <summary>Save &amp; load</summary>
+        <p class="hint">Your clinic details, medications, zone wording and layout are remembered in this browser. Save a template file to share a setup with colleagues or use it on another computer.</p>
+        <div class="btnrow">
+          <button type="button" class="btn" id="export-btn">Save template file</button>
+          <label class="btn" for="import-file">Load template file</label>
+          <input type="file" id="import-file" accept=".json,application/json" class="sr-only">
+        </div>
+        <div class="btnrow">
+          <button type="button" class="btn" id="clear-patient-btn">Clear patient</button>
+          <button type="button" class="btn danger" id="reset-btn">Reset everything</button>
+        </div>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </details>
+    </form>
+
+    <!-- ============ PRINTED SHEET ============ -->
+    <div class="sheet-wrap">
+      <article class="sheet" id="sheet" aria-label="Printable action plan preview"></article>
+    </div>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

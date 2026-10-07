@@ -80,7 +80,7 @@ TRANSLATIONS.zh = {
   firstResponderLabel: '给急救人员的备注',
 
   careTitle: '我的慢阻肺护理',
-  careFlu: '流感疫苗', careCovid: 'COVID-19疫苗', carePneumo: '肺炎疫苗', careRsv: '呼吸道合胞病毒(RSV)疫苗',
+  careFlu: '流感疫苗', careCovid: 'COVID-19疫苗', carePneumo: '肺炎疫苗', careRsv: 'RSV疫苗',
   careRehab: '肺康复', careTechnique: '已检查吸入器使用方法',
   smokingLabel: '吸烟', smokeNever: '从不吸烟', smokeFormer: '已戒烟', smokeCurrent: '我吸烟：已提供戒烟帮助',
 

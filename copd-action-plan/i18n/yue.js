@@ -80,7 +80,7 @@ TRANSLATIONS.yue = {
   firstResponderLabel: '給急救人員的備註',
 
   careTitle: '我的慢阻肺護理',
-  careFlu: '流感疫苗', careCovid: 'COVID-19疫苗', carePneumo: '肺炎球菌疫苗', careRsv: '呼吸道合胞病毒(RSV)疫苗',
+  careFlu: '流感疫苗', careCovid: 'COVID-19疫苗', carePneumo: '肺炎球菌疫苗', careRsv: 'RSV疫苗',
   careRehab: '肺康復', careTechnique: '已檢查吸入器使用方法',
   smokingLabel: '吸煙', smokeNever: '從不吸煙', smokeFormer: '已戒煙', smokeCurrent: '我吸煙：已提供戒煙支援',
 

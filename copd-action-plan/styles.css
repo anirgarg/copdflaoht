@@ -190,7 +190,7 @@ label.check, .radios label { display: flex; gap: 8px; align-items: center; font-
   background: #ffffff;
   color: var(--p-ink);
   box-shadow: 0 1px 2px rgba(20, 33, 43, 0.15), 0 8px 28px rgba(20, 33, 43, 0.14);
-  font-size: 9.1pt;
+  font-size: 9.1pt; /* app.js may step this down to fit (autoFit) */
   line-height: 1.24;
   overflow: hidden;
   display: flex; flex-direction: column; gap: 0.065in;

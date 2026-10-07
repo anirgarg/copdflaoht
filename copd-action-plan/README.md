@@ -27,7 +27,7 @@ write-in boxes, so a blank plan can also be filled in by hand.
 ## Using it
 
 - **Rows:** every list can be changed. You can add, remove or reorder medicines (several per category, or "Other" with any name), zone signs, actions, emergency contacts and resources. A few extra items start unticked (fever, ankle swelling, "my medicines are not helping", pulmonary rehab). Tick them to include them for a patient.
-- **Fit check:** a warning appears if a page is too full to print on one sheet.
+- **Fit check:** if a page gets crowded (long wording or a wordier language), its text steps down slightly, to no smaller than 7.9 pt, so it still fits. If it still doesn't fit, a warning appears in the editor.
 - **Language:** the printed plan comes in English, French, Spanish, Simplified Chinese, Traditional Chinese (Cantonese readers), Arabic (right-to-left) and Hindi.
 - **Layout:** Letter or A4 paper, inhaler pictures, tick boxes or bullets, and a greyscale mode for black-and-white printers.
 

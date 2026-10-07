@@ -45,6 +45,15 @@ and what still needs a human to check before the plan is offered to other provid
 - Translations were drafted for this release. **Have a qualified medical translator review them before patient use** (forward and back
   translation is best practice). French uses Canadian terms (MPOC).
 
+### Translation notes for the reviewer
+
+- **All languages:** clinic-entered text (after-hours advice, resources, custom wording, medicine instructions) prints exactly as typed and is not translated.
+- **French (Canadian):** MPOC; reliever = "pompe de secours"; rescue pack = "médicaments de réserve" (confirm what the clinic calls it); "mandataire spécial"; a few masculine-only forms remain (rSign1, rWait1); "vaccin contre la pneumonie" is plain rather than "pneumococcique".
+- **Spanish:** reliever = "inhalador de rescate" and rescue pack = "medicinas de reserva", so check the two read as clearly different; flare-up = "crisis"; substitute decision-maker = "persona que decide por mí" (plain, not legal).
+- **Simplified Chinese / Traditional (Cantonese readers):** 慢阻肺 in the title; flare-up = 病情加重; reliever 缓解/紓緩吸入器 (HK uses 紓); yue uses some colloquial Cantonese (沖涼, 執床), so check the register; pneumonia vaccine differs (肺炎疫苗 vs 肺炎球菌疫苗).
+- **Arabic:** title reordered to read naturally ("My action plan / for COPD"); reliever = بخاخ التخفيف; a few masculine forms.
+- **Hindi:** gender-neutral phrasing where possible, slash forms elsewhere (करूँगा/करूँगी); uses common English loanwords (इनहेलर, इमरजेंसी, एक्शन प्लान). Check the level of English mixing suits patients.
+
 ## 4. Hosting and legal
 
 - **Privacy (PHIPA).** The form runs entirely in the browser. Patient data is not sent, stored or logged by the tool, and

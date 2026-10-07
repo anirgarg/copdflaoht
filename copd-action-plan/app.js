@@ -667,7 +667,21 @@
     sheet.style.zoom = z.toFixed(3);
   }
 
+  // Shrink a crowded page's text in small steps (down to a readable minimum) so it fits on one sheet.
+  const BASE_PT = 9.1, MIN_PT = 7.9;
+  function autoFit() {
+    document.querySelectorAll('#sheet .page').forEach(page => {
+      let pt = BASE_PT;
+      page.style.fontSize = '';
+      while (page.scrollHeight > page.clientHeight + 1 && pt > MIN_PT) {
+        pt = Math.round((pt - 0.2) * 10) / 10;
+        page.style.fontSize = pt + 'pt';
+      }
+    });
+  }
+
   function checkOverflow() {
+    autoFit();
     const warn = $('#fit-warning');
     const over = [...document.querySelectorAll('#sheet .page')].filter(p => p.scrollHeight > p.clientHeight + 2)
       .map(p => (p.classList.contains('p1') ? '1' : '2'));

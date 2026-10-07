@@ -103,6 +103,6 @@ TRANSLATIONS.en = {
   settle: 'If my breathing does not settle within 10 minutes, I will use my reliever and follow my yellow zone. If it is severe, I will follow my red zone.',
   resourcesTitle: 'Help and information',
   disclaimer: 'Filled in with my health care team. This plan does not replace medical advice. In an emergency, call {emergency}.',
-  page: 'Page',
+  pageN: 'Page {n}',
   creditLabel: 'Plan template by',
 };

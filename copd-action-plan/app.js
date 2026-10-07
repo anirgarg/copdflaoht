@@ -443,6 +443,13 @@
   });
 
   const auto = text => el('span', { dir: 'auto', text });
+  // Language-aware punctuation for text the code joins together
+  const cjk = () => state.lang === 'zh' || state.lang === 'yue';
+  const C = () => (cjk() ? '：' : state.lang === 'fr' ? '\u00a0:' : ':'); // colon mark
+  const SP = () => (cjk() ? '' : ' ');                                          // space after it
+  const sep = () => C() + SP();
+  const paren = txt => (cjk() ? `（${txt}）` : `(${txt})`);
+  const pageLabel = n => t('pageN').replace('{n}', n);
   const line = cls => el('span', { class: 'line' + (cls ? ' ' + cls : '') });
   const value = (v, cls) => (v ? el('span', { class: 'val', dir: 'auto', text: v }) : line(cls));
   const choice = (label, on) => el('span', { class: 'choice' + (on ? ' on' : '') }, el('span', { class: 'radio', 'aria-hidden': 'true' }), label);
@@ -514,8 +521,8 @@
 
     // Green
     const o = state.oxygen;
-    const oxyDetail = [o.rest && `${t('oxyRest')}: ${o.rest}`, o.activity && `${t('oxyActivity')}: ${o.activity}`,
-      o.sleep && `${t('oxySleep')}: ${o.sleep}`, o.hours && `${t('oxyHours')}: ${o.hours}`].filter(Boolean).join(' · ');
+    const oxyDetail = [o.rest && t('oxyRest') + sep() + o.rest, o.activity && t('oxyActivity') + sep() + o.activity,
+      o.sleep && t('oxySleep') + sep() + o.sleep, o.hours && t('oxyHours') + sep() + o.hours].filter(Boolean).join(' · ');
     const b = state.baseline;
     const baseline = el('dl', { class: 'baseline' },
       el('dt', { text: t('baselinePhlegm') }), el('dd', null, value(b.phlegm.trim())),
@@ -536,29 +543,29 @@
     const rescueKnown = hasRescue || anyMeds; // once meds are entered, "no prescription" is a real answer
     const relieverText = state.flare.reliever.trim() || filledMeds('reliever').map(r => [medName('reliever', r), r.instr.trim()].filter(Boolean).join(' — ')).join('; ');
     const medInline = (cat, rows) => rows.map(r => [medName(cat, r), r.instr.trim()].filter(Boolean).join(' — ')).join('; ');
-    const phoneBits = [state.clinic.phone.trim() && `${t('clinicPhoneLabel')}: ${state.clinic.phone.trim()}`,
-      state.clinic.afterHours.trim() && `${t('afterHoursLabel')}: ${state.clinic.afterHours.trim()}`].filter(Boolean);
+    const phoneBits = [state.clinic.phone.trim() && t('clinicPhoneLabel') + sep() + state.clinic.phone.trim(),
+      state.clinic.afterHours.trim() && t('afterHoursLabel') + sep() + state.clinic.afterHours.trim()].filter(Boolean);
 
     const step = (n, body) => el('div', { class: 'step' }, el('span', { class: 'num', text: n }), el('div', { class: 'step-body' }, body));
     const ifThen = (cond, doText, v, hint) => el('p', { class: 'if' },
-      el('b', null, cond, ':'), ' ', hint && el('span', { class: 'hint-inline', text: `(${hint}) ` }), doText, v !== undefined && [': ', v]);
+      el('b', null, cond, C()), SP(), hint && el('span', { class: 'hint-inline', text: paren(hint) + SP() }), doText, v !== undefined && [sep(), v]);
 
     const yellow = zone('yellow', 'unwell', 'yellowSigns', [
       step('1', [
-        el('p', { class: 'if' }, t('step1a'), state.flare.technique.trim() && [': ', auto(state.flare.technique.trim())]),
-        el('p', { class: 'if' }, t('step1b'), ': ', relieverText ? el('b', { dir: 'auto', text: relieverText }) : line()),
+        el('p', { class: 'if' }, t('step1a'), state.flare.technique.trim() && [sep(), auto(state.flare.technique.trim())]),
+        el('p', { class: 'if' }, t('step1b'), sep(), relieverText ? el('b', { dir: 'auto', text: relieverText }) : line()),
       ]),
       el('p', { class: 'rescue-q' }, el('b', { text: t('rescueQ') }),
         choice(t('rescueYes'), rescueKnown && hasRescue), choice(t('rescueNo'), rescueKnown && !hasRescue)),
       (!rescueKnown || hasRescue) && step('2', [
         ifThen(t('step2a'), t('step2aDo'), steroid.length ? el('b', { dir: 'auto', text: medInline('rescueSteroid', steroid) }) : line()),
         ifThen(t('step2b'), t('step2bDo'), abx.length ? el('b', { dir: 'auto', text: medInline('rescueAbx', abx) }) : line(), t('step2bHint')),
-        el('p', { class: 'if' }, el('b', null, t('step2c'), ':'), ' ',
+        el('p', { class: 'if' }, el('b', null, t('step2c'), C()), SP(),
           state.texts.step2cDo.trim() ? auto(state.texts.step2cDo.trim()) : t('step2cDo')),
-        state.flare.followUp.trim() && el('p', { class: 'if' }, t('followUp'), ' ', el('b', { dir: 'auto', text: state.flare.followUp.trim() })),
+        state.flare.followUp.trim() && el('p', { class: 'if' }, t('followUp'), /[:：]$/.test(t('followUp')) ? SP() : ' ', el('b', { dir: 'auto', text: state.flare.followUp.trim() })),
       ]),
       step('3', [
-        el('p', { class: 'if' }, el('b', null, t('step3'), ':'), ' ', state.texts.step3Do.trim() ? auto(state.texts.step3Do.trim()) : t('step3Do')),
+        el('p', { class: 'if' }, el('b', null, t('step3'), C()), SP(), state.texts.step3Do.trim() ? auto(state.texts.step3Do.trim()) : t('step3Do')),
         phoneBits.length && el('p', { class: 'phones', dir: 'auto', text: phoneBits.join(' · ') }),
       ]),
     ]);
@@ -566,16 +573,16 @@
     // Red
     const red = zone('red', 'very', 'redSigns', [
       el('div', { class: 'call' }, el('span', { text: t('callAmbulance') }), el('strong', { text: t('dialNow') })),
-      act(t('whileWaiting'), bullets('redWhileWaiting', i => (i.key === 'rWait3' && relieverText) ? el('span', { dir: 'auto', text: ': ' + relieverText }) : null)),
+      act(t('whileWaiting'), bullets('redWhileWaiting', i => (i.key === 'rWait3' && relieverText) ? el('span', { dir: 'auto', text: sep() + relieverText }) : null)),
       act(t('notesLabel'), state.redNotes.trim() ? el('span', { class: 'pre', dir: 'auto', text: state.redNotes.trim() }) : line('wide')),
     ]);
 
-    return el('section', { class: 'page p1', 'aria-label': t('page') + ' 1' }, head, cols, green, yellow, red, pageFoot(1));
+    return el('section', { class: 'page p1', 'aria-label': pageLabel(1) }, head, cols, green, yellow, red, pageFoot(1));
   }
 
   function pageFoot(n) {
     return el('footer', { class: 'page-foot' },
-      el('span', { text: `${t('title')} · ${t('page')} ${n}` }),
+      el('span', { text: `${t('title')} · ${pageLabel(n)}` }),
       el('span', { class: 'credit', text: `${t('creditLabel')} ${AUTHOR.name} · v${APP_VERSION}` }));
   }
 
@@ -596,7 +603,7 @@
         kv('allergiesLabel', value(a.allergies.trim())),
         kv('conditionsLabel', value(a.conditions.trim())),
         kv('oxygenTargetLabel', el('span', { class: 'inline' },
-          el('span', null, t('spo2Target') + ': ', value(a.spo2.trim(), 'short')),
+          el('span', null, t('spo2Target') + sep(), value(a.spo2.trim(), 'short')),
           el('span', null, tick(a.co2), ' ', t('co2Retainer')),
           el('span', null, tick(a.alertCard), ' ', t('alertCard'))), 'span2'),
         kv('acpLabel', el('span', { class: 'inline' }, choice(t('yes'), a.acp === 'yes'), choice(t('no'), a.acp === 'no'))),
@@ -631,7 +638,7 @@
       el('h3', { text: t('resourcesTitle') }),
       el('ul', null, resources.map(r => el('li', null, el('b', { dir: 'auto', text: r.label.trim() }), r.detail.trim() && el('span', { dir: 'auto', text: r.detail.trim() })))));
 
-    return el('section', { class: 'page p2', 'aria-label': t('page') + ' 2' },
+    return el('section', { class: 'page p2', 'aria-label': pageLabel(2) },
       brandBar(true), amb, care, breathing, res,
       el('p', { class: 'disclaimer', text: t('disclaimer') }),
       pageFoot(2));

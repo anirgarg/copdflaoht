@@ -7,6 +7,7 @@ A browser tool that clinicians fill in with a patient to make a two-page COPD ac
 save it as a PDF. No server, build step or account.
 
 **Live:** https://anirgarg.github.io/copdflaoht/copd-action-plan/
+**Offline / USB copy:** [`download/COPD-Action-Plan-Builder.zip`](download/COPD-Action-Plan-Builder.zip). Unzip it and double-click the `.html` file; no internet needed.
 
 ## The printed plan (portrait, Letter or A4)
 
@@ -51,6 +52,19 @@ an optional backup.
 - **Languages:** English, French (Canadian), Spanish, Simplified Chinese, Traditional Chinese (Cantonese readers), Arabic (right-to-left) and Hindi.
 - **Layout:** Letter or A4, inhaler pictures, tick boxes or bullets, and a greyscale mode for black-and-white printers.
 
+## Offline copy (USB stick, shared drive, email)
+
+`download/COPD-Action-Plan-Builder.html` is the whole tool in **one file** (about 3 MB): styles, fonts,
+translations, inhaler pictures and the PDF/QR readers are all inside it. Copy it anywhere and double-click
+it. It runs in Chrome, Edge, Firefox or Safari with no internet connection and makes no network requests.
+The `.zip` (about 1 MB) contains the same file plus "How to use.txt" and licences, which is handy for email,
+since some mail systems block bare `.html` attachments.
+
+- Clinic settings are remembered by the browser on each computer; move them with **Save/Load template**.
+- The top bar shows "Offline copy, version … (date)" so people know which copy they have.
+- **Rebuild after any change:** `python3 copd-action-plan/tools/build_offline.py` (Python 3, no packages
+  needed), then commit the updated `download/` files.
+
 ## Privacy
 
 - Everything runs in the browser. **Nothing typed into the form is sent anywhere.**
@@ -59,8 +73,8 @@ an optional backup.
   `.json` file to the clinician's computer; store it as you would any health record.
 - Only the clinic template (clinic details, default wording, resources, layout, default language) is remembered in
   the browser and included in template files.
-- All code is served from this site (libraries are bundled in `vendor/`). The only outside request is the
-  Atkinson Hyperlegible font from Google Fonts.
+- All code and fonts are served from this site (libraries in `vendor/`, font in `fonts/`). The tool makes
+  no requests to any other server.
 
 ## Hosting for another clinic or region
 
@@ -86,6 +100,9 @@ an optional backup.
 | `styles.css` | Editor styles and true-size printed pages |
 | `medications/` | Inhaler pictures |
 | `vendor/` | Bundled open-source libraries (QR code, compression, PDF reading); see `vendor/README.md` |
+| `fonts/` | Atkinson Hyperlegible font files (SIL Open Font License) |
+| `tools/build_offline.py` | Builds the single-file offline copy |
+| `download/` | The offline copy (`.html`) and its `.zip` |
 | `REVIEW.md` | Comparison with other COPD plans and the evidence, open items |
 
 ## Acknowledgements

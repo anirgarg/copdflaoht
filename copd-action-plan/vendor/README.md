@@ -7,5 +7,7 @@
 | `jsQR.js` | jsQR (cozmo) | 1.4.0 | Apache-2.0 | Reading the edit code from an uploaded PDF or photo (loaded only when needed) |
 | `pdf.min.js`, `pdf.worker.min.js` | PDF.js (Mozilla), from pdfjs-dist | 4.10.38 | Apache-2.0 | Opening an uploaded PDF in the browser (loaded only when needed) |
 
+The font Atkinson Hyperlegible (Braille Institute, SIL Open Font License 1.1) is in `../fonts/`, from @fontsource/atkinson-hyperlegible 5.3.0.
+
 Copied unmodified from the npm packages (`.mjs` files renamed to `.js` so every web host serves them as JavaScript).
 Everything runs in the browser; uploaded files are never sent anywhere.

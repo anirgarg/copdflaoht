@@ -638,13 +638,26 @@
     return lastCode;
   }
 
-  // Readers, loaded only when someone uploads a PDF or photo
+  // Readers, loaded only when someone uploads a PDF or photo. In the single-file (USB) version the
+  // libraries are embedded in the page (window.OFFLINE_LIBS, base64) and loaded from blob: URLs.
+  const libURLs = {};
+  function libURL(name, path) {
+    const b64 = window.OFFLINE_LIBS && window.OFFLINE_LIBS[name];
+    if (!b64) return new URL(path + '?v=' + APP_VERSION, document.baseURI).href;
+    if (!libURLs[name]) {
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      libURLs[name] = URL.createObjectURL(new Blob([bytes], { type: 'text/javascript' }));
+    }
+    return libURLs[name];
+  }
   let jsQRReady = null;
   function loadJsQR() {
     if (!jsQRReady) {
       jsQRReady = new Promise((resolve, reject) => {
         const sc = document.createElement('script');
-        sc.src = 'vendor/jsQR.js?v=' + APP_VERSION;
+        sc.src = libURL('jsqr', 'vendor/jsQR.js');
         sc.onload = () => resolve(window.jsQR);
         sc.onerror = () => { jsQRReady = null; reject(new Error('jsQR failed to load')); };
         document.head.append(sc);
@@ -671,8 +684,8 @@
     return null;
   }
   async function codeFromPdf(file) {
-    const [jsQR, pdfjs] = await Promise.all([loadJsQR(), import('./vendor/pdf.min.js')]);
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL('vendor/pdf.worker.min.js', document.baseURI).href;
+    const [jsQR, pdfjs] = await Promise.all([loadJsQR(), import(libURL('pdf', 'vendor/pdf.min.js'))]);
+    pdfjs.GlobalWorkerOptions.workerSrc = libURL('pdfWorker', 'vendor/pdf.worker.min.js');
     const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false }).promise;
     try {
       for (let n = doc.numPages; n >= 1; n--) {
@@ -1054,6 +1067,14 @@
   $('#about-email').textContent = AUTHOR.email;
   $('#about-email').href = 'mailto:' + AUTHOR.email;
   $('#about-reviewed').textContent = CONTENT_REVIEWED;
+  if (window.OFFLINE_BUILD) {
+    const ob = window.OFFLINE_BUILD;
+    $('.brand > span').textContent += ` Offline copy, version ${ob.version} (${ob.built}).`;
+    $('#about-download').hidden = true;
+    const note = $('#about-offline');
+    note.hidden = false;
+    note.append('This is the single-file offline copy. It works without internet. The newest version is at ', el('a', { href: ob.online, target: '_blank', rel: 'noopener', text: ob.online }), '.');
+  }
   renderAll();
   syncTopbarHeight();
   if (document.fonts) {

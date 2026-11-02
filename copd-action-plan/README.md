@@ -11,22 +11,26 @@ save it as a PDF. No server, build step or account.
 
 ## The printed plan (portrait, Letter or A4)
 
-**Page 1: action plan.** It has a clinic header band and a patient strip (name, date, review-by date, prepared with), then three zones laid out as
+**Page 1: the action plan.** It has a clinic header band and a patient strip, then three zones laid out as
 *Zone | What I notice | What I do*:
 
 | Zone | What I notice | What I do |
 |---|---|---|
-| **Green zone**: I feel well | Usual signs, usual phlegm and oxygen level | Daily medicines (with inhaler pictures), reliever, home oxygen (rest / activity / sleep / hours), "To stay well I will" |
-| **Yellow zone**: I am having a flare-up | Signs of a flare-up | **1** breathing techniques + more reliever → *Do I have a flare-up prescription?* → **2** steroid if breathing worse, antibiotic if signs of infection, call clinic the same or next working day → **3** not better in 2–3 days: urgent same-day appointment, evenings/weekends advice |
-| **Red zone**: I need help now | Signs of an emergency | Call an ambulance (dial 911), what to do while waiting, notes |
+| **Green zone**: I feel well | Usual signs; **To stay well I will** | Daily medicines (with inhaler pictures), reliever, home oxygen, my usual phlegm and oxygen level |
+| **Yellow zone**: I am having a flare-up | Signs of a flare-up; **When to start** (if still worse after *24 to 48 hours* of more reliever; one bad day that gets better is not a flare-up) | **1** breathing techniques + more reliever → *Do I have a flare-up prescription?* → **2** steroid / antibiotic, call the clinic (**clinic name and phone printed here**) → **3** not better in 2–3 days: urgent appointment |
+| **Red zone**: I need help now | Signs of an emergency | Call an ambulance (dial 911), then a **numbered** "while I wait" list: reliever as often as needed until help arrives, tripod position, pursed-lip breathing, plan and medicines ready |
 
-**Page 2: information and self-help** (each section can be switched off)
-- **For paramedics and hospital staff:** name, address, emergency contacts, allergies, conditions, target SpO₂, CO₂ retention, oxygen alert card, goals of care, substitute decision-maker, notes.
-- **My COPD care:** vaccine dates, pulmonary rehab, puffer technique check, smoking status.
-- **Breathing easier:** pursed-lip breathing, positions that help, pace / plan / prioritize, stay calm, plus when to move to the yellow or red zone.
-- **Help and information:** KCHC and Ontario resources.
+**Back pages**, in the same colour order as page 1 (each section can be switched off):
+- **Blue: My COPD care.** Vaccine dates, pulmonary rehab, puffer technique check, smoking.
+- **Green: Breathing easier.** The 4 Ps in teaching order (**Prioritize, Plan, Pace, Position**), pursed-lip breathing, stay calm.
+- **Yellow: When I am short of breath.** Use the reliever whenever needed (no waiting); when to check the yellow or red zone.
+- **Red: For paramedics and hospital staff.**
+- **Help and information**, then the edit code.
 
-Empty fields print as write-in lines, so a blank plan can be filled in by hand.
+### Type size
+- Page 1 starts at 10.5 pt and steps down only as far as it must (a typical plan prints at about 10 pt).
+  The back pages print at 10.5 pt and flow onto as many pages as they need (usually 3 pages in all).
+- **Large print** (Layout panel, per patient): 14 pt, one zone per page (about 6 pages).
 
 ## Re-opening an old plan: the edit code
 
@@ -47,6 +51,9 @@ an optional backup.
 - **Per plan vs. clinic default:** ticks and wording changes in the zone lists apply to the current plan only.
   **Save as clinic default** keeps them for future patients; **Use clinic default** brings the clinic wording back.
   The plan language and "Prepared with" are also per plan ("Prepared with" carries over to your next patient).
+- **Standard doses:** choosing a medicine fills in its usual adult COPD dose; other common regimens are offered as
+  suggestions in the dose box. The box can always be cleared or typed over, and a typed dose is never replaced.
+  Switch it off with "Fill in standard doses" (Layout). Doses are listed in `data.js`, and the prescriber confirms each one.
 - **Rows:** every list can be changed. You can add, remove or reorder medicines (several per category, or "Other" with any name), zone signs, actions, emergency contacts and resources. A few extra items start unticked: fever, ankle swelling, "my medicines are not helping" and pulmonary rehab.
 - **Fit to one sheet:** if a page gets crowded, its text steps down slightly, to no smaller than 8 pt. If it still doesn't fit, the editor shows a warning.
 - **Languages:** English, French (Canadian), Spanish, Simplified Chinese, Traditional Chinese (Cantonese readers), Arabic (right-to-left) and Hindi.

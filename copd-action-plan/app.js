@@ -33,9 +33,9 @@
       clinic: { name: CLINIC_DEFAULTS.name, program: CLINIC_DEFAULTS.program, phone: CLINIC_DEFAULTS.phone,
                 afterHours: CLINIC_DEFAULTS.afterHours, emergency: CLINIC_DEFAULTS.emergency, logo: '' },
       defaultLists: builtInLists(),
-      texts: { days: '2–3', step2cDo: '', step3Do: '' },
+      texts: { days: '2–3', startWait: '24 to 48 hours', step2cDo: '', step3Do: '' },
       resources: clone(RESOURCE_DEFAULTS),
-      opts: { page2: true, breathing: true, care: true, images: true, ticks: false, greyscale: false, editCode: true, paper: 'letter' },
+      opts: { page2: true, breathing: true, care: true, images: true, ticks: false, greyscale: false, editCode: true, autoDose: true, paper: 'letter' },
     };
   }
 
@@ -48,7 +48,8 @@
       meds: { daily: [emptyMed()], reliever: [emptyMed()], rescueSteroid: [emptyMed()], rescueAbx: [emptyMed()] },
       baseline: { phlegm: '', spo2: '' },
       oxygen: { use: '', rest: '', activity: '', sleep: '', hours: '' },
-      flare: { technique: '', reliever: '', followUp: '' },
+      flare: { technique: '', reliever: '', followUp: '', redReliever: '' },
+      largePrint: false,
       redNotes: '',
       amb: { address: '', contacts: [{ name: '', rel: '', phone: '' }], allergies: '', conditions: '',
              spo2: '', co2: false, alertCard: false, acp: '', sdm: '', notes: '' },
@@ -92,6 +93,12 @@
     });
     return out;
   };
+  // v2.3 re-ordered "While I wait for help"; lists still in the old default order are updated.
+  const OLD_RED_WAIT = JSON.stringify(['rWait1', 'rWait2', 'rWait3', 'rWait4'].map(key => ({ key, on: true })));
+  function migrateLists(lists) {
+    if (JSON.stringify(lists.redWhileWaiting) === OLD_RED_WAIT) lists.redWhileWaiting = listFromKeys(DEFAULT_LISTS.redWhileWaiting);
+    return lists;
+  }
   const validLang = (lang, fallback) => (has(TRANSLATIONS, lang) && LANGUAGES.some(l => l[0] === lang) ? lang : fallback);
   const cleanRows = (rows, shape) => rows.filter(r => r && typeof r === 'object')
     .map(r => { const o = {}; Object.keys(shape).forEach(k => { o[k] = typeof r[k] === 'string' ? r[k] : shape[k]; }); return o; });
@@ -101,7 +108,7 @@
     const t = merge(defaultTemplate(), saved);
     // Older templates (v2.0/2.1) stored the language as `lang` and the wording as `lists`.
     t.defaultLang = validLang(has(saved, 'defaultLang') ? saved.defaultLang : saved.lang, 'en');
-    t.defaultLists = cleanLists(has(saved, 'defaultLists') ? saved.defaultLists : saved.lists, builtInLists());
+    t.defaultLists = migrateLists(cleanLists(has(saved, 'defaultLists') ? saved.defaultLists : saved.lists, builtInLists()));
     t.resources = cleanRows(t.resources, { label: '', detail: '' });
     if (!['letter', 'a4'].includes(t.opts.paper)) t.opts.paper = 'letter';
     if (typeof t.clinic.logo !== 'string' || !t.clinic.logo.startsWith('data:image/')) t.clinic.logo = '';
@@ -112,7 +119,7 @@
     saved = saved && typeof saved === 'object' ? saved : {};
     const p = merge(defaultPlan(tpl), saved);
     p.lang = validLang(saved.lang, tpl.defaultLang);
-    p.lists = cleanLists(saved.lists, tpl.defaultLists);
+    p.lists = migrateLists(cleanLists(saved.lists, tpl.defaultLists));
     Object.keys(p.meds).forEach(k => {
       p.meds[k] = cleanRows(p.meds[k], emptyMed()).map(r => {
         // A medicine no longer in the pick-list keeps its name as "Other".
@@ -155,11 +162,13 @@
     const s = dict[key] != null ? dict[key] : (TRANSLATIONS.en[key] || '');
     const emergency = state.clinic.emergency.trim() || '911';
     const days = state.texts.days.trim() || '2–3';
-    return s.replaceAll('{emergency}', () => emergency).replaceAll('{days}', () => days);
+    const startWait = state.texts.startWait.trim() || '24 to 48 hours';
+    return s.replaceAll('{emergency}', () => emergency).replaceAll('{days}', () => days).replaceAll('{startWait}', () => startWait);
   }
   const itemText = item => (item.key ? t(item.key) : item.text);
 
   function medOptions(cat) { return MED_CATEGORIES[cat].groups.flatMap(g => g[1]); }
+  const standardDoses = (cat, med) => { const o = medOptions(cat).find(x => x[0] === med); return (o && o[2]) || []; };
   const medImage = med => (has(MED_IMAGES, med) ? MED_IMAGES[med] : '');
   function medName(cat, row) {
     if (row.med === '__other') return row.other.trim();
@@ -298,18 +307,32 @@
       select.value = row.med;
       const other = el('input', { type: 'text', placeholder: 'Medication name and strength', 'aria-label': 'Medication name', value: row.other });
       other.hidden = row.med !== '__other';
-      const instr = el('input', { type: 'text', placeholder: MED_CATEGORIES[cat].placeholder, 'aria-label': 'Dose and how to take it', value: row.instr });
+      // Standard doses are offered as suggestions (pick or type over); the first one fills an empty box.
+      const listId = 'doses-' + (++medRow.n);
+      const doseList = el('datalist', { id: listId });
+      const showDoses = () => doseList.replaceChildren(...standardDoses(cat, row.med).map(d => el('option', { value: d })));
+      showDoses();
+      const instr = el('input', { type: 'text', list: listId, placeholder: MED_CATEGORIES[cat].placeholder, 'aria-label': 'Dose and how to take it', value: row.instr });
       select.addEventListener('change', () => {
+        const before = standardDoses(cat, row.med);
         row.med = select.value;
         other.hidden = row.med !== '__other';
+        showDoses();
+        // Fill the standard dose only if the box is empty or still holds the previous medicine's standard dose.
+        const doses = standardDoses(cat, row.med);
+        if (state.opts.autoDose && (!row.instr.trim() || before.includes(row.instr))) {
+          row.instr = doses[0] || '';
+          instr.value = row.instr;
+        }
         if (!other.hidden) other.focus();
         changed('meds');
       });
       other.addEventListener('input', () => { row.other = other.value; changed('meds'); });
       instr.addEventListener('input', () => { row.instr = instr.value; changed('meds'); });
-      return [el('div', { class: 'med-pick' }, select, other), instr];
+      return [el('div', { class: 'med-pick' }, select, other), instr, doseList];
     };
   }
+  medRow.n = 0;
 
   function textItemRow(item) {
     const check = el('input', { type: 'checkbox', class: 'inc', title: 'Include on the plan', 'aria-label': 'Include on the plan' });
@@ -754,9 +777,9 @@
   const choice = (label, on) => el('span', { class: 'choice' + (on ? ' on' : '') }, el('span', { class: 'radio', 'aria-hidden': 'true' }), label);
   const tick = on => el('span', { class: 'tick' + (on ? ' on' : ''), 'aria-hidden': 'true' });
 
-  function bullets(listKey, extra, cls) {
+  function bullets(listKey, extra, cls, numbered) {
     const items = state.lists[listKey].filter(i => i.on !== false && itemText(i).trim());
-    return el('ul', { class: 'bullets' + (state.opts.ticks ? ' ticks' : '') + (cls ? ' ' + cls : '') },
+    return el(numbered ? 'ol' : 'ul', { class: (numbered ? 'numbered' : 'bullets' + (state.opts.ticks ? ' ticks' : '')) + (cls ? ' ' + cls : '') },
       items.map(i => el('li', null, state.opts.ticks && tick(false),
         el('span', { dir: i.key ? null : 'auto' }, itemText(i), extra && extra(i)))));
   }
@@ -800,7 +823,7 @@
       state.clinic.phone.trim() && el('span', { class: 'brand-phone', dir: 'auto', text: state.clinic.phone.trim() }));
   }
 
-  function renderPage1() {
+  function page1Parts() {
     const fmt = iso => (iso ? formatDate(iso) : '');
     const field = (label, v, cls) => el('div', { class: 'pf' + (cls ? ' ' + cls : '') }, el('span', { class: 'pf-label', text: t(label) }), value(v));
 
@@ -826,13 +849,15 @@
     const baseline = el('dl', { class: 'baseline' },
       el('dt', { text: t('baselinePhlegm') }), el('dd', null, value(b.phlegm.trim())),
       el('dt', { text: t('baselineSpo2') }), el('dd', null, value(b.spo2.trim(), 'short')));
+    // "To stay well" sits under the signs (left), keeping the actions column for medicines.
+    const stayWell = el('div', { class: 'stay-well' }, el('p', { class: 'act-label', text: t('stayWellLabel') }), bullets('greenStayWell'));
     const green = zone('green', 'well', 'greenSigns', [
       act(t('medDaily'), medLines('daily')),
       act(t('medReliever'), medLines('reliever')),
       act(null, [el('span', { class: 'act-label inline' }, t('oxygenLabel')), choice(t('no'), o.use === 'no'), choice(t('yes'), o.use === 'yes'),
         o.use !== 'no' && (oxyDetail ? el('span', { class: 'oxy', dir: 'auto', text: oxyDetail }) : line())], 'oxy-row'),
-      act(t('stayWellLabel'), bullets('greenStayWell', null, 'cols')),
-    ], baseline);
+      act(null, baseline, 'usual'),
+    ], stayWell);
 
     // Yellow
     const steroid = filledMeds('rescueSteroid');
@@ -849,6 +874,8 @@
     const ifThen = (cond, doText, v, hint) => el('p', { class: 'if' },
       el('b', null, cond, C()), SP(), hint && el('span', { class: 'hint-inline', text: paren(hint) + SP() }), doText, v !== undefined && [sep(), v]);
 
+    // "When to start" sits under the flare-up signs: it is about telling a flare-up from a bad day.
+    const whenBox = (!rescueKnown || hasRescue) && el('p', { class: 'when' }, t('whenToStart'));
     const yellow = zone('yellow', 'unwell', 'yellowSigns', [
       step('1', [
         el('p', { class: 'if' }, t('step1a'), state.flare.technique.trim() && [sep(), auto(state.flare.technique.trim())]),
@@ -861,29 +888,36 @@
         ifThen(t('step2b'), t('step2bDo'), abx.length ? el('b', { dir: 'auto', text: medInline('rescueAbx', abx) }) : line(), t('step2bHint')),
         el('p', { class: 'if' }, el('b', null, t('step2c'), C()), SP(),
           state.texts.step2cDo.trim() ? auto(state.texts.step2cDo.trim()) : t('step2cDo')),
+        // Clinic name and number right where the patient is told to call
+        el('p', { class: 'phones', dir: 'auto' }, t('clinicPhoneLabel') + sep(),
+          state.clinic.name.trim() || state.clinic.phone.trim()
+            ? [state.clinic.name.trim(), state.clinic.name.trim() && state.clinic.phone.trim() && ' · ', state.clinic.phone.trim() || line()]
+            : line('wide')),
         state.flare.followUp.trim() && el('p', { class: 'if' }, t('followUp'), /[:：]$/.test(t('followUp')) ? SP() : ' ', el('b', { dir: 'auto', text: state.flare.followUp.trim() })),
       ]),
       step('3', [
         el('p', { class: 'if' }, el('b', null, t('step3'), C()), SP(), state.texts.step3Do.trim() ? auto(state.texts.step3Do.trim()) : t('step3Do')),
         phoneBits.length > 0 && el('p', { class: 'phones', dir: 'auto', text: phoneBits.join(' · ') }),
       ]),
-    ]);
+    ], whenBox);
 
     // Red
     const red = zone('red', 'very', 'redSigns', [
       el('div', { class: 'call' }, el('span', { text: t('callAmbulance') }), el('strong', { text: t('dialNow') })),
-      act(t('whileWaiting'), bullets('redWhileWaiting', i => (i.key === 'rWait3' && relieverText) ? [sep(), el('span', { dir: 'auto', text: relieverText })] : null)),
+      // Numbered; the emergency reliever line uses its own instructions (not the everyday dose)
+      act(t('whileWaiting'), bullets('redWhileWaiting',
+        i => (i.key === 'rWait3' && state.flare.redReliever.trim()) ? [sep(), el('b', { dir: 'auto', text: state.flare.redReliever.trim() })] : null, '', true)),
       act(t('notesLabel'), state.redNotes.trim() ? el('span', { class: 'pre', dir: 'auto', text: state.redNotes.trim() }) : line('wide')),
     ]);
 
-    return el('section', { class: 'page p1', 'aria-label': pageLabel(1) }, head, cols, green, yellow, red, pageFoot(1));
+    return { head, cols, green, yellow, red };
   }
 
-  function pageFoot(n) {
-    const last = n === (state.opts.page2 ? 2 : 1);
+  function pageFoot(n, total) {
+    const last = n === total;
     const code = last && state.opts.editCode ? editCodeSvg() : null;
     const where = /^https?:/.test(location.protocol) ? location.host + location.pathname.replace(/index\.html$/, '') : '';
-    const compact = !state.opts.page2; // page 1 has little room to spare
+    const compact = total === 1; // a one-page plan has little room to spare
     return el('footer', { class: 'page-foot' + (code && code.svg ? ' with-code' : '') + (compact ? ' compact' : '') },
       el('div', { class: 'foot-text' },
         el('span', { text: `${t('title')} · ${pageLabel(n)}` }),
@@ -895,7 +929,7 @@
           : ` For the care team: to update this plan, upload this PDF or a photo of this page to the COPD Action Plan builder${where ? ' (' + where + ')' : ''}.`)));
   }
 
-  function renderPage2() {
+  function page2Parts() {
     const a = state.amb;
     const contacts = a.contacts.filter(c => c.name.trim() || c.phone.trim());
     const kv = (label, body, cls) => el('div', { class: 'kv' + (cls ? ' ' + cls : '') }, el('dt', { text: t(label) }), el('dd', null, body));
@@ -931,15 +965,22 @@
         el('div', { class: 'care-item smoking' }, el('dt', { text: t('smokingLabel') }),
           el('dd', null, smoke.map(([v, k]) => choice(t(k), c.smoking === v))))));
 
-    const tip = (key, body) => el('div', { class: 'tip' }, el('h3', { text: t(key) }), body);
+    const tip = (key, body, cls) => el('div', { class: 'tip' + (cls ? ' ' + cls : '') }, el('h3', { text: t(key) }), body);
+    const p4 = (key, body) => el('li', null, el('b', { text: t(key) }), body);
     const breathing = state.opts.breathing && el('section', { class: 'card breath' },
       el('h2', { class: 'card-head', text: t('breathTitle') }),
       el('p', { class: 'intro', text: t('breathIntro') }),
       el('div', { class: 'tips' },
+        // Taught in this order in KCHC classes: Prioritize, Plan, Pace, Position
+        tip('tip4P', el('ol', { class: 'four-p' },
+          p4('tipPrioritize', el('span', { text: t('tipPrioritizeDo') })),
+          p4('tipPlan', [el('span', { text: t('tipPlanDo') }), el('span', { class: 'mini-head', text: t('activitiesLabel') }), bullets('activities', null, 'cols')]),
+          p4('tipPace', el('span', { text: t('tipPaceDo') })),
+          p4('tipPosition', el('span', { text: t('tipPositionDo') }))), 'wide'),
         tip('tipPursed', el('p', { text: t('tipPursedDo') })),
-        tip('tipPosition', el('p', { text: t('tipPositionDo') })),
-        tip('tipPace', [el('p', { text: t('tipPaceDo') }), el('p', { class: 'mini-head', text: t('activitiesLabel') }), bullets('activities', null, 'cols')]),
-        tip('tipCalm', el('p', { text: t('tipCalmDo') }))),
+        tip('tipCalm', el('p', { text: t('tipCalmDo') }))));
+    const reliever = el('section', { class: 'card reliever' },
+      el('h2', { class: 'card-head', text: t('relieverTitle') }),
       el('p', { class: 'settle', text: t('settle') }));
 
     const resources = state.resources.filter(r => r.label.trim() || r.detail.trim());
@@ -947,10 +988,58 @@
       el('h3', { text: t('resourcesTitle') }),
       el('ul', null, resources.map(r => el('li', null, el('b', { dir: 'auto', text: r.label.trim() }), r.detail.trim() && el('span', { dir: 'auto', text: r.detail.trim() })))));
 
-    return el('section', { class: 'page p2', 'aria-label': pageLabel(2) },
-      brandBar(true), amb, care, breathing, res,
-      el('p', { class: 'disclaimer', text: t('disclaimer') }),
-      pageFoot(2));
+    // Same colour order as page 1: blue (care), green, yellow, red; help and information last
+    return { care, breathing, reliever, amb, res, disclaimer: el('p', { class: 'disclaimer', text: t('disclaimer') }) };
+  }
+
+  // Page 1 (the action plan) is laid out as fixed pages; the back-page sections then flow onto as
+  // many pages as they need at the chosen type size, never splitting a section.
+  //   Normal: page 1 = all three zones.  Large print: one zone per page.
+  function nameStrip() {
+    return el('p', { class: 'name-strip', dir: 'auto' }, el('b', { text: t('title') }),
+      state.patient.name.trim() && [' · ', state.patient.name.trim()]);
+  }
+  const newPage = kids => el('section', { class: 'page' }, kids.filter(Boolean));
+  function layoutPages(sheet) {
+    const one = page1Parts();
+    const fixed = state.largePrint
+      ? [[one.head, one.cols, one.green],
+         [brandBar(true), nameStrip(), one.cols.cloneNode(true), one.yellow],
+         [brandBar(true), nameStrip(), one.cols.cloneNode(true), one.red]]
+      : [[one.head, one.cols, one.green, one.yellow, one.red]];
+    const pages = fixed.map(newPage);
+    sheet.replaceChildren(...pages);
+
+    if (state.opts.page2) {
+      const two = page2Parts();
+      const blocks = [two.care, two.breathing, two.reliever, two.amb, two.res, two.disclaimer].filter(Boolean);
+      const base = (state.largePrint ? FIT.large : FIT.normal).base + 'pt';
+      const over = pg => pg.scrollHeight > pg.clientHeight + 1;
+      let cur = null;
+      const start = () => {
+        // A footer with the edit code reserves the space the real footer will take.
+        cur = newPage([brandBar(true), nameStrip(), pageFoot(99, 99)]);
+        cur.style.setProperty('--pt', base);
+        sheet.append(cur);
+        pages.push(cur);
+      };
+      blocks.forEach(block => {
+        if (!cur) start();
+        cur.insertBefore(block, cur.lastChild);
+        if (over(cur) && cur.children.length > 4) { // more than brand + name + this block + footer
+          cur.removeChild(block);
+          start();
+          cur.insertBefore(block, cur.lastChild);
+        }
+      });
+      pages.forEach(pg => { if (pg.lastChild && pg.lastChild.tagName === 'FOOTER') pg.lastChild.remove(); });
+    }
+    pages.forEach((pg, i) => {
+      pg.className = `page p${i + 1}`;
+      pg.dataset.n = i + 1;
+      pg.setAttribute('aria-label', pageLabel(i + 1));
+      pg.append(pageFoot(i + 1, pages.length));
+    });
   }
 
   function formatDate(iso) {
@@ -972,8 +1061,10 @@
     sheet.style.setProperty('--page-w', paper.w);
     sheet.style.setProperty('--page-h', paper.h);
     $('#page-style').textContent = `@page { size: ${state.opts.paper === 'a4' ? 'A4' : 'letter'} portrait; margin: 0; }`;
-    sheet.replaceChildren(...[renderPage1(), state.opts.page2 && renderPage2()].filter(Boolean));
-    sheet.querySelectorAll('img').forEach(img => { if (!img.complete) img.addEventListener('load', refit, { once: true }); });
+    sheet.classList.toggle('large', !!state.largePrint);
+    sheet.style.zoom = 1; // lay out and measure at true (printed) size
+    layoutPages(sheet);
+    sheet.querySelectorAll('img').forEach(img => { if (!img.complete) img.addEventListener('load', renderSheet, { once: true }); });
     refit();
   }
 
@@ -997,22 +1088,24 @@
   }
 
   // Shrink a crowded page's text in small steps (down to a readable minimum) so it fits on one sheet.
-  const BASE_PT = 9.6, MIN_PT = 8.0, FLOOR_PT = 7.6;
+  // Type sizes (pt). Everything on the page is sized in em, so it all scales together.
+  const FIT = { normal: { base: 10.5, min: 9.5, floor: 9 }, large: { base: 14, min: 12.5, floor: 12 } };
   function autoFit() {
     const over = page => page.scrollHeight > page.clientHeight + 1;
+    const { base: BASE_PT, min: MIN_PT, floor: FLOOR_PT } = state.largePrint ? FIT.large : FIT.normal;
     document.querySelectorAll('#sheet .page').forEach(page => {
       let pt = BASE_PT;
-      page.style.fontSize = '';
+      page.style.setProperty('--pt', BASE_PT + 'pt');
       page.style.lineHeight = '';
       // 1) shrink text a little at a time; 2) then tighten line spacing; 3) then a final small step
       while (over(page) && pt > MIN_PT) {
         pt = Math.round((pt - 0.2) * 10) / 10;
-        page.style.fontSize = pt + 'pt';
+        page.style.setProperty('--pt', pt + 'pt');
       }
       if (over(page)) page.style.lineHeight = '1.2';
       while (over(page) && pt > FLOOR_PT) {
         pt = Math.round((pt - 0.1) * 10) / 10;
-        page.style.fontSize = pt + 'pt';
+        page.style.setProperty('--pt', pt + 'pt');
       }
     });
   }
@@ -1023,10 +1116,10 @@
     if (codeNote) { codeNote.hidden = !(state.opts.editCode && lastCode.error); codeNote.textContent = lastCode.error; }
     const warn = $('#fit-warning');
     const over = [...document.querySelectorAll('#sheet .page')].filter(p => p.scrollHeight > p.clientHeight + 2)
-      .map(p => (p.classList.contains('p1') ? '1' : '2'));
+      .map(p => p.dataset.n);
     warn.hidden = !over.length;
     warn.textContent = over.length
-      ? `${over.length > 1 ? 'Pages 1 and 2 are' : `Page ${over[0]} is`} too full to print on one sheet. Shorten or untick some items, turn off inhaler pictures, or switch off "Breathing easier".`
+      ? `${over.length > 1 ? `Pages ${over.join(', ')} are` : `Page ${over[0]} is`} too full to print on one sheet. Shorten or untick some items, turn off inhaler pictures, switch off "Breathing easier", or use Large print (more pages).`
       : '';
   }
   window.addEventListener('resize', () => { clearTimeout(fitPreview.t); fitPreview.t = setTimeout(fitPreview, 100); });
@@ -1078,7 +1171,7 @@
   renderAll();
   syncTopbarHeight();
   if (document.fonts) {
-    if (document.fonts.ready) document.fonts.ready.then(() => { refit(); syncTopbarHeight(); });
-    document.fonts.addEventListener && document.fonts.addEventListener('loadingdone', refit);
+    if (document.fonts.ready) document.fonts.ready.then(() => { renderSheet(); syncTopbarHeight(); });
+    document.fonts.addEventListener && document.fonts.addEventListener('loadingdone', renderSheet);
   }
 })();

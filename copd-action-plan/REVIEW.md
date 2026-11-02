@@ -1,4 +1,4 @@
-# Content review: version 2.2 (October 2026)
+# Content review: version 2.3 (November 2026)
 
 Prepared for Dr Anirudha (Ani) Garg, MSc MD FRACGP CCFP · Kingston Community Health Centre
 
@@ -90,6 +90,31 @@ Chinese was chosen).
 | Canada's quitline | 1-866-366-3667 | Confirmed (Health Canada, May 2026) |
 | Living Well with COPD | livingwellwithcopd.com | Confirmed |
 | Smokers' Helpline 1-877-513-5333 | — | Not included: Ontario phone coaching appears to have moved to Health811 **[verify]** |
+
+## 5b. Clinician feedback round (v2.3, November 2026)
+
+| Feedback | Change |
+|---|---|
+| Font is small for patients with low vision | Page type now starts at 10.5 pt (page 1 about 10 pt for a typical plan, previously about 9 pt). Back pages flow onto an extra page instead of shrinking. New **Large print** option: 14 pt, one zone per page. |
+| Add clinic name and phone where step 2 says to call | Printed under step 2 (write-in line if not set) |
+| How long to wait before starting steroid and antibiotic (good and bad days) | "When to start" box beside the yellow-zone signs: *if I still feel worse after {startWait} of using my reliever more often; one bad day that gets better is not a flare-up.* {startWait} is clinic wording (default "24 to 48 hours"). |
+| "Wait 10 minutes, then follow yellow zone" was confusing; patients should not wait to use the reliever | Replaced with a yellow box: use the reliever whenever needed; check the yellow zone if it is needed more than usual for more than a day; red zone and 911 if breathing is very hard or the reliever is not helping. |
+| Red zone reliever should not be the every-4-hours dose | Red zone now says "Use my reliever as often as I need until help arrives", plus optional emergency instructions per patient. It no longer copies the everyday dose. |
+| "While I wait for help" order | Numbered: reliever, tripod position, pursed-lip breathing, plan and medicines ready |
+| Move "To stay well" to the left | Done (green zone, under the signs) |
+| Back page in zone colour order | Blue, green, yellow, red, then Help and information |
+| Prioritize, Plan, Pace, Position | The 4 Ps in that order (other languages use a natural heading, e.g. "4 ways to save my energy") |
+| Standard doses for educators, with a blank option | Standard adult doses auto-fill and are suggested; they can be typed over or switched off |
+
+**Needs clinical sign-off:** the default "24 to 48 hours" and the standard dose list in `data.js`:
+- antibiotic regimens (amoxicillin, amoxicillin-clavulanate, doxycycline, azithromycin, clarithromycin,
+  cefuroxime, SMX-TMP, moxifloxacin, levofloxacin, all 5 days)
+- prednisone and prednisolone 40 mg × 5 days; methylprednisolone 32 mg × 5 days
+- maintenance azithromycin and erythromycin
+- reliever and inhaler doses
+
+"Lupin" and maintenance doxycycline have no standard dose (left blank). The red-zone emergency reliever
+instructions are left to the prescriber (placeholder example only).
 
 ## 6. Open items before wider release
 

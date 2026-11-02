@@ -6,8 +6,8 @@
   <meta name="color-scheme" content="light">
   <title>COPD Action Plan Builder</title>
   <meta name="description" content="Build, customize and print a two-page COPD action plan with your patient.">
-  <link rel="stylesheet" href="fonts/fonts.css?v=2.2">
-  <link rel="stylesheet" href="styles.css?v=2.2">
+  <link rel="stylesheet" href="fonts/fonts.css?v=2.3">
+  <link rel="stylesheet" href="styles.css?v=2.3">
   <style id="page-style">@page { size: letter landscape; margin: 0; }</style>
 </head>
 <body>
@@ -94,6 +94,8 @@
           <label>Breathing techniques / recovery plan (optional) <input type="text" id="flare-technique" data-bind="flare.technique" placeholder="e.g. Pursed-lip breathing, pace activities"></label>
         </div>
         <h3 class="sub">Step 2 · Flare-up prescription</h3>
+        <label class="stack">When to start <small>(clinic wording; printed as "if I still feel worse after … of using my reliever more often")</small>
+          <input type="text" id="text-start-wait" data-bind="texts.startWait" placeholder="24 to 48 hours"></label>
         <p class="hint tight">Leave both empty if the patient has no flare-up prescription; the plan then skips to step 3.</p>
         <p class="mini-label">Steroid</p>
         <div data-meds="rescueSteroid"></div>
@@ -118,6 +120,8 @@
 
       <details class="panel zone-panel red">
         <summary><span>Red zone · I need help now</span></summary>
+        <label class="stack">Reliever in an emergency <small>(optional detail after "Use my reliever as often as I need until help arrives")</small>
+          <input type="text" id="red-reliever" data-bind="flare.redReliever" placeholder="e.g. Ventolin 2 puffs every 5 minutes"></label>
         <label class="stack">Notes (optional) <textarea id="red-notes" data-bind="redNotes" rows="2" placeholder="e.g. Use reliever 4–6 puffs, repeat every 20 minutes until help arrives"></textarea></label>
         <details class="more">
           <summary>Wording: emergency signs and "while I wait"</summary>
@@ -226,6 +230,8 @@
           <label class="check"><input type="checkbox" id="opt-ticks" data-bind="opts.ticks"> Tick boxes instead of bullets</label>
           <label class="check"><input type="checkbox" id="opt-grey" data-bind="opts.greyscale"> Black-and-white printer (greyscale)</label>
           <label class="check"><input type="checkbox" id="opt-code" data-bind="opts.editCode"> Print an edit code (re-open this plan later by uploading its PDF)</label>
+          <label class="check"><input type="checkbox" id="opt-large" data-bind="largePrint"> Large print for this patient (bigger type, 4 pages)</label>
+          <label class="check"><input type="checkbox" id="opt-dose" data-bind="opts.autoDose"> Fill in standard doses when a medicine is chosen</label>
         </div>
       </details>
 
@@ -276,16 +282,16 @@
     </div>
   </main>
 
-  <script src="vendor/pako.min.js?v=2.2"></script>
-  <script src="vendor/qrcode.js?v=2.2"></script>
-  <script src="data.js?v=2.2"></script>
-  <script src="i18n/en.js?v=2.2"></script>
-  <script src="i18n/fr.js?v=2.2"></script>
-  <script src="i18n/es.js?v=2.2"></script>
-  <script src="i18n/zh.js?v=2.2"></script>
-  <script src="i18n/yue.js?v=2.2"></script>
-  <script src="i18n/ar.js?v=2.2"></script>
-  <script src="i18n/hi.js?v=2.2"></script>
-  <script src="app.js?v=2.2"></script>
+  <script src="vendor/pako.min.js?v=2.3"></script>
+  <script src="vendor/qrcode.js?v=2.3"></script>
+  <script src="data.js?v=2.3"></script>
+  <script src="i18n/en.js?v=2.3"></script>
+  <script src="i18n/fr.js?v=2.3"></script>
+  <script src="i18n/es.js?v=2.3"></script>
+  <script src="i18n/zh.js?v=2.3"></script>
+  <script src="i18n/yue.js?v=2.3"></script>
+  <script src="i18n/ar.js?v=2.3"></script>
+  <script src="i18n/hi.js?v=2.3"></script>
+  <script src="app.js?v=2.3"></script>
 </body>
 </html>

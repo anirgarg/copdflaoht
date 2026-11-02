@@ -5,14 +5,14 @@
  * clinic template file.
  */
 
-const APP_VERSION = '2.2'; // also update the ?v= tags in index.html
+const APP_VERSION = '2.3'; // also update the ?v= tags in index.html
 
 // ---- Author credit (printed in the footer and shown in the tool) ----
 const AUTHOR = {
   name: 'Dr Anirudha (Ani) Garg, MSc MD FRACGP CCFP',
   email: 'ani.garg.md@gmail.com',
 };
-const CONTENT_REVIEWED = '2026-10';
+const CONTENT_REVIEWED = '2026-11';
 
 // ---- Clinic defaults (shown until a clinic template is loaded or edited) ----
 const CLINIC_DEFAULTS = {
@@ -34,46 +34,73 @@ const RESOURCE_DEFAULTS = [
 ];
 
 // ---- Medication pick-lists ----
-// Each option: [value, label]. Groups render as <optgroup>.
+// Each option: [value, label, standard doses]. The first standard dose fills "Dose and how to take it"
+// when the medicine is chosen (if "Fill in standard doses" is on); the others are offered as suggestions.
+// [] = no standard dose (left blank for the prescriber). These are usual adult doses for COPD, given as a
+// starting point for educators: the prescriber confirms the dose for each patient (kidney function,
+// allergies, interactions). Clinical sign-off: see REVIEW.md.
 const MED_CATEGORIES = {
   daily: {
     label: 'Daily COPD medicines', placeholder: 'e.g. 1 inhalation once a day',
     groups: [
       ['Inhalers', [
-        ['advair', 'Advair'], ['anoro', 'Anoro'], ['breo', 'Breo'], ['breztri', 'Breztri'],
-        ['duaklir', 'Duaklir'], ['incruse', 'Incruse'], ['inspiolto', 'Inspiolto'], ['lupin', 'Lupin'],
-        ['seebri', 'Seebri'], ['serevent', 'Serevent'], ['spiriva_handihaler', 'Spiriva (HandiHaler)'],
-        ['spiriva_respimat', 'Spiriva (Respimat)'], ['symbicort', 'Symbicort'], ['trelegy', 'Trelegy'],
-        ['tudorza', 'Tudorza'], ['ultibro', 'Ultibro'], ['wixela', 'Wixela'],
+        ['advair', 'Advair', ['1 inhalation twice a day']],
+        ['anoro', 'Anoro', ['1 inhalation once a day']],
+        ['breo', 'Breo', ['1 inhalation once a day']],
+        ['breztri', 'Breztri', ['2 puffs twice a day']],
+        ['duaklir', 'Duaklir', ['1 inhalation twice a day']],
+        ['incruse', 'Incruse', ['1 inhalation once a day']],
+        ['inspiolto', 'Inspiolto', ['2 puffs once a day']],
+        ['lupin', 'Lupin', []],
+        ['seebri', 'Seebri', ['Inhale the contents of 1 capsule once a day']],
+        ['serevent', 'Serevent', ['1 inhalation twice a day']],
+        ['spiriva_handihaler', 'Spiriva (HandiHaler)', ['Inhale the contents of 1 capsule once a day (2 breaths from the capsule)']],
+        ['spiriva_respimat', 'Spiriva (Respimat)', ['2 puffs once a day']],
+        ['symbicort', 'Symbicort', ['2 inhalations twice a day']],
+        ['trelegy', 'Trelegy', ['1 inhalation once a day']],
+        ['tudorza', 'Tudorza', ['1 inhalation twice a day']],
+        ['ultibro', 'Ultibro', ['Inhale the contents of 1 capsule once a day']],
+        ['wixela', 'Wixela', ['1 inhalation twice a day']],
       ]],
       ['Tablets', [
-        ['azithromycin', 'Azithromycin (Zithromax)'], ['erythromycin', 'Erythromycin'],
-        ['doxycycline', 'Doxycycline'], ['roflumilast', 'Roflumilast (Daxas)'],
+        ['azithromycin', 'Azithromycin (Zithromax)', ['250 mg once a day', '250 mg three times a week (Mon/Wed/Fri)', '500 mg three times a week (Mon/Wed/Fri)']],
+        ['erythromycin', 'Erythromycin', ['250 mg twice a day']],
+        ['doxycycline', 'Doxycycline', []],
+        ['roflumilast', 'Roflumilast (Daxas)', ['500 mcg once a day', '250 mcg once a day for 4 weeks, then 500 mcg once a day']],
       ]],
     ],
   },
   reliever: {
     label: 'Reliever', placeholder: 'e.g. 1–2 puffs every 4–6 hours if needed',
     groups: [['Relievers', [
-      ['ventolin_mdi', 'Ventolin (puffer)'], ['ventolin_diskus', 'Ventolin (Diskus)'],
-      ['airomir', 'Airomir (puffer)'], ['bricanyl', 'Bricanyl (Turbuhaler)'],
-      ['atrovent', 'Atrovent'], ['combivent', 'Combivent (Respimat)'],
+      ['ventolin_mdi', 'Ventolin (puffer)', ['1–2 puffs every 4–6 hours if needed']],
+      ['ventolin_diskus', 'Ventolin (Diskus)', ['1 inhalation every 4–6 hours if needed']],
+      ['airomir', 'Airomir (puffer)', ['1–2 puffs every 4–6 hours if needed']],
+      ['bricanyl', 'Bricanyl (Turbuhaler)', ['1 inhalation when needed (no more than 6 a day)']],
+      ['atrovent', 'Atrovent', ['2 puffs four times a day if needed']],
+      ['combivent', 'Combivent (Respimat)', ['1 puff four times a day (no more than 6 puffs a day)']],
     ]]],
   },
   rescueSteroid: {
     label: 'Flare-up steroid', placeholder: 'e.g. 40 mg once a day for 5 days',
     groups: [['Steroids', [
-      ['prednisone', 'Prednisone'], ['prednisolone', 'Prednisolone'], ['medrol', 'Methylprednisolone (Medrol)'],
+      ['prednisone', 'Prednisone', ['40 mg once a day for 5 days']],
+      ['prednisolone', 'Prednisolone', ['40 mg once a day for 5 days']],
+      ['medrol', 'Methylprednisolone (Medrol)', ['32 mg once a day for 5 days']],
     ]]],
   },
   rescueAbx: {
     label: 'Flare-up antibiotic', placeholder: 'e.g. 875 mg twice a day for 5 days',
     groups: [['Antibiotics', [
-      ['amoxicillin', 'Amoxicillin'], ['augmentin', 'Amoxicillin-clavulanate (Clavulin)'],
-      ['doxycycline', 'Doxycycline'], ['azithromycin', 'Azithromycin (Zithromax)'],
-      ['clarithromycin', 'Clarithromycin (Biaxin)'], ['cefuroxime', 'Cefuroxime'],
-      ['sulfamethoxazole', 'Sulfamethoxazole-trimethoprim (Septra)'],
-      ['moxifloxacin', 'Moxifloxacin (Avelox)'], ['levofloxacin', 'Levofloxacin'],
+      ['amoxicillin', 'Amoxicillin', ['500 mg three times a day for 5 days', '1000 mg three times a day for 5 days']],
+      ['augmentin', 'Amoxicillin-clavulanate (Clavulin)', ['875 mg twice a day for 5 days', '500 mg three times a day for 5 days']],
+      ['doxycycline', 'Doxycycline', ['200 mg on day 1, then 100 mg once a day for 4 days', '100 mg twice a day for 5 days']],
+      ['azithromycin', 'Azithromycin (Zithromax)', ['500 mg on day 1, then 250 mg once a day for 4 days', '500 mg once a day for 3 days']],
+      ['clarithromycin', 'Clarithromycin (Biaxin)', ['500 mg twice a day for 5 days', '1000 mg (XL) once a day for 5 days']],
+      ['cefuroxime', 'Cefuroxime', ['500 mg twice a day for 5 days']],
+      ['sulfamethoxazole', 'Sulfamethoxazole-trimethoprim (Septra)', ['1 double-strength tablet (800/160 mg) twice a day for 5 days']],
+      ['moxifloxacin', 'Moxifloxacin (Avelox)', ['400 mg once a day for 5 days']],
+      ['levofloxacin', 'Levofloxacin', ['750 mg once a day for 5 days', '500 mg once a day for 7 days']],
     ]]],
   },
 };
@@ -99,7 +126,7 @@ const DEFAULT_LISTS = {
   greenStayWell: ['gWell1', 'gWell2', 'gWell3', 'gWell4', 'gWell5', 'gWell6'],
   yellowSigns:  ['ySign1', 'ySign2', 'ySign3', 'ySign4', 'ySign5', 'ySign6', 'ySign7'],
   redSigns:     ['rSign1', 'rSign2', 'rSign3', 'rSign4', 'rSign5', 'rSign6', 'rSign7'],
-  redWhileWaiting: ['rWait1', 'rWait2', 'rWait3', 'rWait4'],
+  redWhileWaiting: ['rWait3', 'rWait1', 'rWait2', 'rWait4'], // printed as a numbered list in this order
   activities:   ['act1', 'act2', 'act3', 'act4', 'act5', 'act6'],
 };
 const OPTIONAL_ITEMS = ['gWell6', 'ySign6', 'ySign7', 'rSign7'];
